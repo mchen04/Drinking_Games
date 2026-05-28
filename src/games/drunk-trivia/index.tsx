@@ -36,6 +36,8 @@ function buildQueue(): QuestionView[] {
 }
 
 export default function DrunkTrivia() {
+  // Trivia is playable solo (registry "1+"): players are OPTIONAL and only enable
+  // turn rotation, so this game intentionally does NOT gate behind RequirePlayers.
   const { players } = usePlayers();
   const hasPlayers = players.length > 0;
 

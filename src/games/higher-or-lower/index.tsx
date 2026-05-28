@@ -9,9 +9,19 @@ import { sfx } from "@/lib/sound";
 import { pop } from "@/lib/confetti";
 import { useTimeouts } from "@/lib/timers";
 
+interface Board {
+  deck: Card[];
+  current: Card;
+}
+
+function freshBoard(): Board {
+  const deck = createDeck();
+  return { deck, current: deck[0] };
+}
+
 export default function HigherOrLower() {
-  const [deck, setDeck] = useState<Card[]>(() => createDeck());
-  const [current, setCurrent] = useState<Card>(() => deck[0]);
+  // deck + current are initialised together so `current` always matches the deck.
+  const [board, setBoard] = useState<Board>(freshBoard);
   const [next, setNext] = useState<Card | null>(null);
   const [streak, setStreak] = useState(0);
   const [best, setBest] = useState(0);
@@ -20,29 +30,25 @@ export default function HigherOrLower() {
 
   const { after, clearAll } = useTimeouts();
 
-  function ensureDeck(d: Card[]): Card[] {
-    return d.length > 1 ? d : createDeck();
-  }
-
   function guess(higher: boolean) {
     if (revealing) return;
     clearAll();
     setRevealing(true);
     sfx.flip();
-    const pool = ensureDeck(deck);
+    const pool = board.deck.length > 1 ? board.deck : createDeck();
     const drawn = pool[1];
     setNext(drawn);
 
     after(650, () => {
       // A tie counts as a loss (you drink) — matches the classic rule + Ride the Bus.
-      const correct = higher ? drawn.value > current.value : drawn.value < current.value;
+      const correct = higher ? drawn.value > board.current.value : drawn.value < board.current.value;
       if (correct) {
         sfx.ding();
         pop(0.5, 0.4);
         setStreak((s) => {
-          const next = s + 1;
-          setBest((b) => Math.max(b, next));
-          return next;
+          const nextStreak = s + 1;
+          setBest((b) => Math.max(b, nextStreak));
+          return nextStreak;
         });
         setResult("win");
       } else {
@@ -51,8 +57,7 @@ export default function HigherOrLower() {
         setResult("lose");
       }
       after(1100, () => {
-        setCurrent(drawn);
-        setDeck(pool.slice(1));
+        setBoard({ deck: pool.slice(1), current: drawn });
         setNext(null);
         setResult(null);
         setRevealing(false);
@@ -62,9 +67,7 @@ export default function HigherOrLower() {
 
   function reset() {
     clearAll();
-    const d = createDeck();
-    setDeck(d);
-    setCurrent(d[0]);
+    setBoard(freshBoard());
     setNext(null);
     setStreak(0);
     setResult(null);
@@ -81,7 +84,7 @@ export default function HigherOrLower() {
 
       <div className="flex items-center justify-center gap-6 mb-8 min-h-[14rem]">
         <div className="flex flex-col items-center gap-2">
-          <PlayingCard card={current} size="lg" glow="#18e7ff" />
+          <PlayingCard card={board.current} size="lg" glow="#18e7ff" />
           <span className="text-xs text-white/40">current</span>
         </div>
         <span className="text-2xl text-white/30">vs</span>

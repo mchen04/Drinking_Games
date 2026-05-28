@@ -30,8 +30,8 @@ function Roulette({ players }: { players: Player[] }) {
       <Wheel
         segments={segments}
         onSpinStart={() => setLoser(null)}
-        onResult={(i) => {
-          setLoser(players[i]);
+        onResult={(index) => {
+          setLoser(players[index]);
           drinkRain();
         }}
       />

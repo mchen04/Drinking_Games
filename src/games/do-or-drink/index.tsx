@@ -10,7 +10,7 @@ import {
   PlayerChip,
   RequirePlayers,
 } from "@/components/ui";
-import { usePlayers, type Player } from "@/store/players";
+import { type Player } from "@/store/players";
 import { createDealer } from "@/lib/random";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
@@ -303,24 +303,12 @@ function DoOrDrinkGame({ players }: { players: Player[] }) {
   );
 }
 
-// ─── Default export — wraps with RequirePlayers or runs solo ─────────────────
+// ─── Default export — gate on 2+ players (registry: "2+") ────────────────────
 
 export default function DoOrDrink() {
-  const players = usePlayers((s) => s.players);
-
-  // If players are already configured, go straight to the game.
-  // RequirePlayers is used to enforce a minimum only when no players exist
-  // yet — but this game can also run solo / without names.
-  if (players.length >= 2) {
-    return <DoOrDrinkGame players={players} />;
-  }
-
-  // With 0-1 players: offer RequirePlayers prompt OR let them play solo.
   return (
-    <div className="flex flex-col items-center gap-6">
-      <RequirePlayers min={2} accent={ACCENT}>
-        {(ps) => <DoOrDrinkGame players={ps} />}
-      </RequirePlayers>
-    </div>
+    <RequirePlayers min={2} accent={ACCENT}>
+      {(players) => <DoOrDrinkGame players={players} />}
+    </RequirePlayers>
   );
 }
