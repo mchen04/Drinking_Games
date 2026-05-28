@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Bus } from "lucide-react";
 import { createDeck, type Card, type Rank } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
@@ -46,8 +47,7 @@ export default function BusDriver() {
   const [penaltyDrinks, setPenaltyDrinks] = useState(0);
   const [attempts, setAttempts] = useState(1);
   const [busy, setBusy] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const winTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { after, clearAll } = useTimeouts();
   // Keep a live ref to attempts so timer callbacks never read a stale closure.
   const attemptsRef = useRef(1);
 
@@ -56,22 +56,9 @@ export default function BusDriver() {
     attemptsRef.current = attempts;
   }, [attempts]);
 
-  // Clean up any pending timers on unmount.
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      if (winTimerRef.current !== null) {
-        clearTimeout(winTimerRef.current);
-        winTimerRef.current = null;
-      }
-    };
-  }, []);
-
   /** Reset the row and reshuffle the deck, incrementing attempt count. */
   const resetRun = useCallback((nextAttempts: number) => {
+    clearAll();
     setRow(buildHiddenRow());
     setDeck(buildDeck());
     setFlipped(0);
@@ -79,7 +66,7 @@ export default function BusDriver() {
     setPhase("playing");
     setPenaltyDrinks(0);
     setBusy(false);
-  }, []);
+  }, [clearAll]);
 
   function flipNext() {
     if (busy || phase !== "playing" || flipped >= ROW_SIZE) return;
@@ -107,15 +94,10 @@ export default function BusDriver() {
       setPhase("penalty");
       sfx.buzz();
       // After showing penalty, reset after a delay.
-      // Clear any stale timer before starting a new one.
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-      timerRef.current = setTimeout(() => {
-        timerRef.current = null;
+      clearAll();
+      after(2600, () => {
         resetRun(attemptsRef.current + 1);
-      }, 2600);
+      });
     } else {
       // Safe — green glow, advance
       const newRow = row.map((s, i) =>
@@ -131,15 +113,11 @@ export default function BusDriver() {
       if (nextFlipped === ROW_SIZE) {
         // All 8 cleared — WIN!
         setPhase("won");
-        if (winTimerRef.current !== null) {
-          clearTimeout(winTimerRef.current);
-          winTimerRef.current = null;
-        }
-        winTimerRef.current = setTimeout(() => {
-          winTimerRef.current = null;
+        clearAll();
+        after(300, () => {
           celebrate();
           sfx.win();
-        }, 300);
+        });
       }
     }
   }

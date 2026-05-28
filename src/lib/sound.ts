@@ -7,7 +7,7 @@
  */
 
 let ctx: AudioContext | null = null;
-const MUTE_KEY = "pd:" + "muted";
+const MUTE_KEY = "pd:muted";
 
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -37,22 +37,25 @@ type ToneOpts = {
   type?: OscillatorType;
   gain?: number;
   sweepTo?: number;
+  /** seconds to delay the note, scheduled on the audio clock (no setTimeout) */
+  delay?: number;
 };
 
-function tone({ freq, duration = 0.12, type = "sine", gain = 0.18, sweepTo }: ToneOpts) {
+function tone({ freq, duration = 0.12, type = "sine", gain = 0.18, sweepTo, delay = 0 }: ToneOpts) {
   const ac = getCtx();
   if (!ac || isMuted()) return;
+  const t0 = ac.currentTime + delay;
   const osc = ac.createOscillator();
   const g = ac.createGain();
   osc.type = type;
-  osc.frequency.setValueAtTime(freq, ac.currentTime);
-  if (sweepTo) osc.frequency.exponentialRampToValueAtTime(sweepTo, ac.currentTime + duration);
-  g.gain.setValueAtTime(0.0001, ac.currentTime);
-  g.gain.exponentialRampToValueAtTime(gain, ac.currentTime + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + duration);
+  osc.frequency.setValueAtTime(freq, t0);
+  if (sweepTo) osc.frequency.exponentialRampToValueAtTime(sweepTo, t0 + duration);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(gain, t0 + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
   osc.connect(g).connect(ac.destination);
-  osc.start();
-  osc.stop(ac.currentTime + duration + 0.02);
+  osc.start(t0);
+  osc.stop(t0 + duration + 0.02);
 }
 
 export const sfx = {
@@ -65,7 +68,7 @@ export const sfx = {
   },
   win: () => {
     [523, 659, 784, 1046].forEach((f, i) =>
-      setTimeout(() => tone({ freq: f, duration: 0.18, type: "triangle", gain: 0.16 }), i * 90),
+      tone({ freq: f, duration: 0.18, type: "triangle", gain: 0.16, delay: i * 0.09 }),
     );
   },
   buzz: () => tone({ freq: 140, duration: 0.32, type: "sawtooth", gain: 0.16 }),

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback } from "react";
 import { RotateCcw, Heart, Spade } from "lucide-react";
 import { createDeck, type Card, isRed } from "@/lib/deck";
 import {
@@ -12,6 +12,7 @@ import {
   PlayerChip,
 } from "@/components/ui";
 import { sfx } from "@/lib/sound";
+import { useTimeouts } from "@/lib/timers";
 import { pop } from "@/lib/confetti";
 import { usePlayers } from "@/store/players";
 
@@ -35,21 +36,7 @@ export default function RedOrBlack() {
   const hasPlayers = players.length > 0;
   const currentPlayer = hasPlayers ? players[turnIndex % players.length] : null;
 
-  const outerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const innerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (outerTimerRef.current !== null) {
-        clearTimeout(outerTimerRef.current);
-        outerTimerRef.current = null;
-      }
-      if (innerTimerRef.current !== null) {
-        clearTimeout(innerTimerRef.current);
-        innerTimerRef.current = null;
-      }
-    };
-  }, []);
+  const { after, clearAll } = useTimeouts();
 
   const guess = useCallback(
     (guessRed: boolean) => {
@@ -62,11 +49,8 @@ export default function RedOrBlack() {
 
       setRevealed(drawn);
 
-      if (outerTimerRef.current !== null) {
-        clearTimeout(outerTimerRef.current);
-      }
-      outerTimerRef.current = setTimeout(() => {
-        outerTimerRef.current = null;
+      clearAll();
+      after(650, () => {
         const cardIsRed = isRed(drawn.suit);
         const correct = guessRed === cardIsRed;
 
@@ -87,31 +71,20 @@ export default function RedOrBlack() {
 
         setDeck(rest.length > 0 ? rest : createDeck());
 
-        if (innerTimerRef.current !== null) {
-          clearTimeout(innerTimerRef.current);
-        }
-        innerTimerRef.current = setTimeout(() => {
-          innerTimerRef.current = null;
+        after(1200, () => {
           setResult(null);
           setRevealing(false);
           if (hasPlayers) {
             setTurnIndex((t) => t + 1);
           }
-        }, 1200);
-      }, 650);
+        });
+      });
     },
     [revealing, deck, hasPlayers],
   );
 
   function reset() {
-    if (outerTimerRef.current !== null) {
-      clearTimeout(outerTimerRef.current);
-      outerTimerRef.current = null;
-    }
-    if (innerTimerRef.current !== null) {
-      clearTimeout(innerTimerRef.current);
-      innerTimerRef.current = null;
-    }
+    clearAll();
     setDeck(createDeck());
     setRevealed(null);
     setResult(null);

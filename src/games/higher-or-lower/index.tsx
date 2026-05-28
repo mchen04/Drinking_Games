@@ -1,12 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { createDeck, type Card } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { pop } from "@/lib/confetti";
+import { useTimeouts } from "@/lib/timers";
 
 export default function HigherOrLower() {
   const [deck, setDeck] = useState<Card[]>(() => createDeck());
@@ -17,20 +18,7 @@ export default function HigherOrLower() {
   const [result, setResult] = useState<"win" | "lose" | null>(null);
   const [revealing, setRevealing] = useState(false);
 
-  const t1Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const t2Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (t1Ref.current !== null) clearTimeout(t1Ref.current);
-      if (t2Ref.current !== null) clearTimeout(t2Ref.current);
-    };
-  }, []);
-
-  function clearTimers() {
-    if (t1Ref.current !== null) { clearTimeout(t1Ref.current); t1Ref.current = null; }
-    if (t2Ref.current !== null) { clearTimeout(t2Ref.current); t2Ref.current = null; }
-  }
+  const { after, clearAll } = useTimeouts();
 
   function ensureDeck(d: Card[]): Card[] {
     return d.length > 1 ? d : createDeck();
@@ -38,15 +26,14 @@ export default function HigherOrLower() {
 
   function guess(higher: boolean) {
     if (revealing) return;
-    clearTimers();
+    clearAll();
     setRevealing(true);
     sfx.flip();
     const pool = ensureDeck(deck);
     const drawn = pool[1];
     setNext(drawn);
 
-    t1Ref.current = setTimeout(() => {
-      t1Ref.current = null;
+    after(650, () => {
       // A tie counts as a loss (you drink) — matches the classic rule + Ride the Bus.
       const correct = higher ? drawn.value > current.value : drawn.value < current.value;
       if (correct) {
@@ -63,19 +50,18 @@ export default function HigherOrLower() {
         setStreak(0);
         setResult("lose");
       }
-      t2Ref.current = setTimeout(() => {
-        t2Ref.current = null;
+      after(1100, () => {
         setCurrent(drawn);
         setDeck(pool.slice(1));
         setNext(null);
         setResult(null);
         setRevealing(false);
-      }, 1100);
-    }, 650);
+      });
+    });
   }
 
   function reset() {
-    clearTimers();
+    clearAll();
     const d = createDeck();
     setDeck(d);
     setCurrent(d[0]);
