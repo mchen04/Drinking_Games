@@ -44,7 +44,7 @@ function useCoinFlip(onDone: (result: CoinSide) => void) {
   const [side, setSide] = useState<CoinSide | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onDoneRef = useRef(onDone);
-  useEffect(() => { onDoneRef.current = onDone; });
+  useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
 
   function flip() {
     // Clear any orphaned timer before starting a new one

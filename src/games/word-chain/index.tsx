@@ -10,6 +10,7 @@ import {
   PlayerChip,
   RequirePlayers,
 } from "@/components/ui";
+import { CircleProgress } from "@/components/ui/CircleProgress";
 import { sfx } from "@/lib/sound";
 import { drinkRain } from "@/lib/confetti";
 import { pickRandom } from "@/lib/random";
@@ -175,8 +176,6 @@ function Game({ players }: { players: Player[] }) {
 
   // Fraction of time remaining for the ring.
   const ringFraction = timeLeft / TURN_SECONDS;
-  const circumference = 2 * Math.PI * 26; // r=26
-  const strokeDash = ringFraction * circumference;
   const ringColor =
     timeLeft <= 2 ? "#ff5e5b" : timeLeft <= 3 ? "#ffb627" : "#2de2c0";
 
@@ -216,40 +215,13 @@ function Game({ players }: { players: Player[] }) {
         </AnimatePresence>
 
         {/* Countdown ring */}
-        <div className="relative w-16 h-16 flex items-center justify-center">
-          <svg
-            width="64"
-            height="64"
-            viewBox="0 0 64 64"
-            className="-rotate-90 absolute inset-0"
-          >
-            {/* Track */}
-            <circle
-              cx="32"
-              cy="32"
-              r="26"
-              fill="none"
-              stroke="rgba(255,255,255,0.08)"
-              strokeWidth="5"
-            />
-            {/* Progress arc */}
-            <motion.circle
-              cx="32"
-              cy="32"
-              r="26"
-              fill="none"
-              stroke={ringColor}
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeDasharray={`${strokeDash} ${circumference}`}
-              animate={{
-                strokeDasharray: `${strokeDash} ${circumference}`,
-                stroke: ringColor,
-              }}
-              transition={{ duration: 0.25 }}
-              style={{ filter: `drop-shadow(0 0 6px ${ringColor})` }}
-            />
-          </svg>
+        <CircleProgress
+          fraction={ringFraction}
+          size={64}
+          stroke={5}
+          color={ringColor}
+          tween={0.25}
+        >
           <span
             className={cn(
               "text-lg font-display font-bold tabular-nums",
@@ -258,7 +230,7 @@ function Game({ players }: { players: Player[] }) {
           >
             {timeLeft}
           </span>
-        </div>
+        </CircleProgress>
       </div>
 
       {/* Whose turn */}

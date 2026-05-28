@@ -4,21 +4,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { CircleProgress } from "@/components/ui/CircleProgress";
 import { celebrate, drinkRain } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
+import { ACCENT as PALETTE_ACCENT } from "@/lib/palette";
 
-const ACCENT = "#9d4edd";
+const ACCENT = PALETTE_ACCENT.timer; // "#9d4edd"
+const URGENT_COLOR = "#ff5e5b";
 const ROUND_SECONDS = 60;
 
 const ROUND_OPTIONS = [10, 20, 30, 60] as const;
 type RoundOption = (typeof ROUND_OPTIONS)[number];
-
-// SVG ring constants
-const RING_R = 88;
-const RING_STROKE = 10;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_R;
-const SVG_SIZE = (RING_R + RING_STROKE) * 2 + 4;
-const CENTER = SVG_SIZE / 2;
 
 function formatElapsed(totalSecs: number): string {
   const m = Math.floor(totalSecs / 60);
@@ -119,10 +115,6 @@ export default function PowerHour() {
     stateRef.current.totalRounds = r;
   }
 
-  // Ring progress: fraction of current round remaining
-  const progress = secsLeft / ROUND_SECONDS; // 1 → full, 0 → empty
-  const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
-
   // Glow intensity pulses on last 10s
   const isUrgent = secsLeft <= 10 && running && !done;
 
@@ -161,85 +153,54 @@ export default function PowerHour() {
       )}
 
       {/* Progress ring */}
-      <div className="relative mb-8 flex items-center justify-center">
-        <svg
-          width={SVG_SIZE}
-          height={SVG_SIZE}
-          style={{ transform: "rotate(-90deg)" }}
-        >
-          {/* Track */}
-          <circle
-            cx={CENTER}
-            cy={CENTER}
-            r={RING_R}
-            fill="none"
-            stroke="rgba(255,255,255,0.08)"
-            strokeWidth={RING_STROKE}
-          />
-          {/* Progress arc */}
-          <motion.circle
-            cx={CENTER}
-            cy={CENTER}
-            r={RING_R}
-            fill="none"
-            stroke={isUrgent ? "#ff5e5b" : ACCENT}
-            strokeWidth={RING_STROKE}
-            strokeLinecap="round"
-            strokeDasharray={RING_CIRCUMFERENCE}
-            animate={{ strokeDashoffset: dashOffset }}
-            transition={{ duration: 0.5, ease: "linear" }}
-            style={{
-              filter: `drop-shadow(0 0 ${isUrgent ? 16 : 10}px ${isUrgent ? "#ff5e5b" : ACCENT})`,
-            }}
-          />
-        </svg>
-
-        {/* Inner content */}
-        <div
-          className="absolute inset-0 flex flex-col items-center justify-center text-center"
-          style={{ transform: "rotate(0deg)" }}
-        >
-          <AnimatePresence mode="wait">
-            {done ? (
-              <motion.div
-                key="done"
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col items-center gap-1"
+      <CircleProgress
+        fraction={secsLeft / ROUND_SECONDS}
+        size={200}
+        stroke={10}
+        color={isUrgent ? URGENT_COLOR : ACCENT}
+        tween={0.5}
+        className="mb-8"
+      >
+        <AnimatePresence mode="wait">
+          {done ? (
+            <motion.div
+              key="done"
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center gap-1"
+            >
+              <span className="text-4xl">🏆</span>
+              <span
+                className="font-display text-lg font-bold"
+                style={{ color: ACCENT }}
               >
-                <span className="text-4xl">🏆</span>
-                <span
-                  className="font-display text-lg font-bold"
-                  style={{ color: ACCENT }}
-                >
-                  Done!
-                </span>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="timer"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center gap-0.5"
+                Done!
+              </span>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="timer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span
+                className={
+                  "font-display text-5xl font-bold tabular-nums " +
+                  (isUrgent ? "text-neon-coral" : "text-white")
+                }
+                style={!isUrgent ? { color: ACCENT } : undefined}
               >
-                <span
-                  className={
-                    "font-display text-5xl font-bold tabular-nums " +
-                    (isUrgent ? "text-neon-coral" : "text-white")
-                  }
-                  style={!isUrgent ? { color: ACCENT } : undefined}
-                >
-                  {String(secsLeft).padStart(2, "0")}
-                </span>
-                <span className="text-white/40 text-xs uppercase tracking-widest">
-                  seconds
-                </span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                {String(secsLeft).padStart(2, "0")}
+              </span>
+              <span className="text-white/40 text-xs uppercase tracking-widest">
+                seconds
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </CircleProgress>
 
       {/* Drink callout */}
       <div className="h-14 flex items-center justify-center mb-4">

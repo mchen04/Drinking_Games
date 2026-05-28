@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { Search, Heart } from "lucide-react";
 import { GAMES } from "@/games/registry";
-import { CATEGORIES, type Category } from "@/lib/types";
+import { CATEGORIES, categoryMeta, type Category } from "@/lib/types";
 import { GameCard } from "./GameCard";
 import { NeonBackground } from "./NeonBackground";
 import { cn } from "@/lib/cn";
@@ -21,7 +21,7 @@ export function Dashboard() {
         !q ||
         g.title.toLowerCase().includes(q) ||
         g.tagline.toLowerCase().includes(q) ||
-        g.category.includes(q);
+        categoryMeta(g.category).label.toLowerCase().includes(q);
       return matchCat && matchQ;
     });
   }, [query, active]);

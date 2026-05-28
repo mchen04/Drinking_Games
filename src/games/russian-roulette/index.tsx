@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { useTimeouts } from "@/lib/timers";
 import {
   RequirePlayers,
   GameHeading,
@@ -211,6 +212,7 @@ function RouletteGame({ players }: { players: Player[] }) {
   const [roundNum, setRoundNum] = useState(1);
 
   const currentPlayer = players[turn % players.length];
+  const { after, clearAll } = useTimeouts();
 
   function pickGlass(idx: number) {
     if (phase !== "picking") return;
@@ -224,25 +226,27 @@ function RouletteGame({ players }: { players: Player[] }) {
       return next;
     });
 
+    clearAll();
+
     if (isLoaded) {
       // Dramatic loss
-      setTimeout(() => {
+      after(120, () => {
         sfx.buzz();
         drinkRain();
         setLoser(currentPlayer);
         // Reveal all remaining hidden glasses as "picked" (dimmed)
         setGlasses((prev) => prev.map((s) => (s === "hidden" ? "picked" : s)) as GlassState[]);
         setPhase("result");
-      }, 120);
+      });
     } else {
       // Safe — green glow + ding then advance turn
-      setTimeout(() => {
+      after(80, () => {
         sfx.ding();
-      }, 80);
-      setTimeout(() => {
+      });
+      after(950, () => {
         setTurn((t) => t + 1);
         setPhase("picking"); // stay in picking phase
-      }, 950);
+      });
     }
   }
 

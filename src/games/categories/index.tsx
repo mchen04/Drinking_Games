@@ -9,6 +9,7 @@ import {
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
+  CircleProgress,
 } from "@/components/ui";
 import { createDealer } from "@/lib/random";
 import { sfx } from "@/lib/sound";
@@ -151,12 +152,11 @@ function Categories({ players }: { players: Player[] }) {
   // -----------------------------------------------------------------------
   // Timer ring geometry
   // -----------------------------------------------------------------------
-  const RADIUS = 44;
-  const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
   const fraction = seconds / timeLimit;
-  const dashOffset = CIRCUMFERENCE * (1 - fraction);
+  // Use the game's coral ACCENT above 50 %, warn amber in the middle,
+  // and a vivid red-coral (not party-pink) for the final <25% urgent state.
   const ringColor =
-    fraction > 0.5 ? ACCENT : fraction > 0.25 ? "#ffb627" : "#ff2d95";
+    fraction > 0.5 ? ACCENT : fraction > 0.25 ? "#ffb627" : "#ff2d55";
 
   // -----------------------------------------------------------------------
   // Render
@@ -209,35 +209,14 @@ function Categories({ players }: { players: Player[] }) {
 
       {/* Timer ring + controls row */}
       <div className="flex flex-col sm:flex-row items-center gap-8 mb-8">
-        {/* SVG countdown ring */}
-        <div className="relative flex items-center justify-center" style={{ width: 108, height: 108 }}>
-          <svg width="108" height="108" className="-rotate-90">
-            {/* track */}
-            <circle
-              cx="54"
-              cy="54"
-              r={RADIUS}
-              fill="none"
-              stroke="rgba(255,255,255,0.08)"
-              strokeWidth="8"
-            />
-            {/* progress */}
-            <motion.circle
-              cx="54"
-              cy="54"
-              r={RADIUS}
-              fill="none"
-              stroke={ringColor}
-              strokeWidth="8"
-              strokeLinecap="round"
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={dashOffset}
-              style={{ filter: `drop-shadow(0 0 6px ${ringColor})` }}
-              animate={{ strokeDashoffset: dashOffset, stroke: ringColor }}
-              transition={{ duration: 0.3 }}
-            />
-          </svg>
-          {/* center number */}
+        {/* Countdown ring — shared CircleProgress (size=96 → r=44, stroke=8) */}
+        <CircleProgress
+          fraction={fraction}
+          size={96}
+          stroke={8}
+          color={ringColor}
+          tween={0.3}
+        >
           <AnimatePresence mode="wait">
             <motion.span
               key={seconds}
@@ -245,13 +224,13 @@ function Categories({ players }: { players: Player[] }) {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.6, opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="absolute font-display text-3xl text-white"
+              className="font-display text-3xl text-white"
               style={{ textShadow: `0 0 16px ${ringColor}` }}
             >
               {seconds}
             </motion.span>
           </AnimatePresence>
-        </div>
+        </CircleProgress>
 
         {/* Action buttons */}
         <div className="flex flex-col gap-3 items-center sm:items-start">

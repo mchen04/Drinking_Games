@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw, Play, Pause } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { CircleProgress } from "@/components/ui/CircleProgress";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
 import { cn } from "@/lib/cn";
@@ -107,11 +108,6 @@ export default function Centurion() {
     setTarget(t);
   }
 
-  // Circular progress ring
-  const RING_R = 54;
-  const RING_C = 2 * Math.PI * RING_R;
-  const ringOffset = RING_C * (1 - circularPct);
-
   const isRunning = phase === "running";
   const isDone = phase === "done";
 
@@ -143,44 +139,16 @@ export default function Centurion() {
       </div>
 
       {/* Main display */}
-      <div className="relative flex items-center justify-center mb-8" style={{ width: 180, height: 180 }}>
-        {/* SVG ring */}
-        <svg
-          width={180}
-          height={180}
-          viewBox="0 0 140 140"
-          className="absolute inset-0"
-          style={{ transform: "rotate(-90deg)" }}
-        >
-          {/* track */}
-          <circle
-            cx={70}
-            cy={70}
-            r={RING_R}
-            fill="none"
-            strokeWidth={10}
-            stroke="rgba(255,255,255,0.08)"
-          />
-          {/* progress */}
-          <circle
-            cx={70}
-            cy={70}
-            r={RING_R}
-            fill="none"
-            strokeWidth={10}
-            stroke={ACCENT}
-            strokeDasharray={RING_C}
-            strokeDashoffset={ringOffset}
-            strokeLinecap="round"
-            style={{
-              filter: `drop-shadow(0 0 6px ${ACCENT})`,
-              transition: "stroke-dashoffset 0.9s linear",
-            }}
-          />
-        </svg>
-
-        {/* Center content */}
-        <div className="relative flex flex-col items-center justify-center gap-0.5">
+      <CircleProgress
+        fraction={circularPct}
+        size={180}
+        stroke={10}
+        color={ACCENT}
+        trackColor="rgba(255,255,255,0.08)"
+        tween={0.9}
+        className="mb-8"
+      >
+        <div className="flex flex-col items-center justify-center gap-0.5">
           <motion.span
             animate={shotControls}
             className="text-5xl leading-none select-none"
@@ -193,7 +161,7 @@ export default function Centurion() {
           </span>
           <span className="text-white/40 text-xs">next shot</span>
         </div>
-      </div>
+      </CircleProgress>
 
       {/* Overall progress bar */}
       <div className="w-full max-w-sm mb-2">

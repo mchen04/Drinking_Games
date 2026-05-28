@@ -1,5 +1,5 @@
 /** Dare/challenge lines shown after the bottle lands on a player. */
-export const DARES: string[] = [
+export const DARES = [
   "Take 2 sips and give the spinner a truth question.",
   "Do your best impression of someone in the circle.",
   "Take a drink and say something nice about the person across from you.",
@@ -30,4 +30,4 @@ export const DARES: string[] = [
   "Do a cartwheel or drink.",
   "Sing the chorus of the last song you listened to.",
   "Sip every time someone says your name for the next round.",
-];
+] as const;

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
   RequirePlayers,
@@ -9,7 +9,7 @@ import {
   DrinkCallout,
 } from "@/components/ui";
 import type { Player } from "@/store/players";
-import { pickRandom } from "@/lib/random";
+import { pickRandom, randInt } from "@/lib/random";
 import { sfx } from "@/lib/sound";
 import { drinkRain } from "@/lib/confetti";
 import { DARES } from "./data";
@@ -57,10 +57,18 @@ function targetRotation(
 function Game({ players }: { players: Player[] }) {
   const controls = useAnimationControls();
   const currentRotationRef = useRef(0);
+  const mountedRef = useRef(true);
   const [spinning, setSpinning] = useState(false);
   const [chosen, setChosen] = useState<Player | null>(null);
   const [dare, setDare] = useState<string>("");
   const [spunOnce, setSpunOnce] = useState(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   // Responsive radius: smaller on mobile
   const RADIUS = 130;
@@ -72,7 +80,7 @@ function Game({ players }: { players: Player[] }) {
     setDare("");
     setSpunOnce(true);
 
-    const pickedIndex = Math.floor(Math.random() * players.length);
+    const pickedIndex = randInt(0, players.length - 1);
     const target = targetRotation(
       pickedIndex,
       players.length,
@@ -91,6 +99,7 @@ function Game({ players }: { players: Player[] }) {
         },
       })
       .then(() => {
+        if (!mountedRef.current) return;
         currentRotationRef.current = target;
         sfx.ding();
         const picked = players[pickedIndex];

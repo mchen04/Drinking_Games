@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
 import { createDeck, type Card, type Rank } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading } from "@/components/ui";
@@ -36,6 +37,7 @@ export default function KingsCup() {
   const [kings, setKings] = useState(0);
   const [over, setOver] = useState(false);
 
+  const { after } = useTimeouts();
   const rule = useMemo(() => (drawn ? RULES[drawn.rank] : null), [drawn]);
 
   function draw() {
@@ -49,13 +51,13 @@ export default function KingsCup() {
       setKings(k);
       if (k >= 4) {
         setOver(true);
-        setTimeout(() => {
+        after(400, () => {
           celebrate();
           drinkRain();
           sfx.win();
-        }, 400);
+        });
       } else {
-        setTimeout(() => sfx.pour(), 300);
+        after(300, () => sfx.pour());
       }
     }
   }

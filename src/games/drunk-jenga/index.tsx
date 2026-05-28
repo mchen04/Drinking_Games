@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { useTimeouts } from "@/lib/timers";
 import {
   NeonButton,
   GameHeading,
@@ -52,20 +53,7 @@ function JengaGame({ players }: { players: Player[] }) {
   const [pulling, setPulling] = useState(false);
 
   const towerControls = useAnimationControls();
-  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      timeoutsRef.current.forEach(clearTimeout);
-    };
-  }, []);
-
-  function addTimeout(fn: () => void, ms: number) {
-    const id = setTimeout(fn, ms);
-    timeoutsRef.current.push(id);
-    return id;
-  }
+  const { after, clearAll } = useTimeouts();
 
   const triggerCollapse = useCallback(
     (who: Player) => {
@@ -93,7 +81,7 @@ function JengaGame({ players }: { players: Player[] }) {
     const removedId = blocks[Math.floor(Math.random() * blocks.length)];
     setPulledId(removedId);
 
-    addTimeout(() => {
+    after(420, () => {
       const newBlocks = blocks.filter((b) => b !== removedId);
       setBlocks(newBlocks);
       const nextDare = dealerRef.current.next();
@@ -112,11 +100,11 @@ function JengaGame({ players }: { players: Player[] }) {
       const falls = Math.random() < prob;
 
       if (falls) {
-        addTimeout(() => triggerCollapse(current), 700);
+        after(700, () => triggerCollapse(current));
       } else {
         setPulling(false);
       }
-    }, 420);
+    });
   }
 
   function advanceTurn() {
@@ -128,8 +116,7 @@ function JengaGame({ players }: { players: Player[] }) {
   }
 
   function reset() {
-    timeoutsRef.current.forEach(clearTimeout);
-    timeoutsRef.current = [];
+    clearAll();
     dealerRef.current = createDealer(BLOCK_DARES);
     setBlocks(Array.from({ length: TOTAL_BLOCKS }, (_, i) => i));
     setPulledId(null);

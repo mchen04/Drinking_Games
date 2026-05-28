@@ -5,4 +5,5 @@ export { PromptDeck } from "./PromptDeck";
 export { PlayingCard } from "./PlayingCard";
 export { Die } from "./Dice";
 export { Wheel, type WheelSegment } from "./Wheel";
+export { CircleProgress } from "./CircleProgress";
 export { Chip, GameHeading, DrinkCallout, PlayerChip } from "./primitives";

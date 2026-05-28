@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useCallback } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
 import { Die, NeonButton, RequirePlayers, GameHeading, PlayerChip, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
@@ -37,6 +38,7 @@ function Mexico({ players }: { players: Player[] }) {
   const [losers, setLosers] = useState<Player[]>([]);
   const [round, setRound] = useState(1);
 
+  const { after, clearAll } = useTimeouts();
   const currentPlayer = players[currentIdx];
 
   // Determine losers from results
@@ -55,7 +57,8 @@ function Mexico({ players }: { players: Player[] }) {
     const b = randInt(1, 6);
     setDice([a, b]);
 
-    setTimeout(() => {
+    clearAll();
+    after(650, () => {
       setRolling(false);
       setHasRolled(true);
       sfx.ding();
@@ -64,7 +67,7 @@ function Mexico({ players }: { players: Player[] }) {
       if ((a === 2 && b === 1) || (a === 1 && b === 2)) {
         sfx.win();
       }
-    }, 650);
+    });
   }
 
   function confirmRoll() {
@@ -85,7 +88,7 @@ function Mexico({ players }: { players: Player[] }) {
       setLosers(found);
       setRoundOver(true);
       sfx.pour();
-      setTimeout(() => drinkRain(), 300);
+      after(300, () => drinkRain());
     } else {
       // Advance to next player
       setCurrentIdx((i) => i + 1);

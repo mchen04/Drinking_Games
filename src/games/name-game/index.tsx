@@ -10,6 +10,7 @@ import {
   PlayerChip,
   RequirePlayers,
 } from "@/components/ui";
+import { CircleProgress } from "@/components/ui/CircleProgress";
 import { sfx } from "@/lib/sound";
 import { drinkRain, pop } from "@/lib/confetti";
 import { pickRandom } from "@/lib/random";
@@ -196,8 +197,6 @@ function Game({ players }: { players: Player[] }) {
 
   // Ring progress: fraction remaining (1 = full, 0 = empty).
   const ringFraction = timeLeft / TURN_SECONDS;
-  const RING_R = 28;
-  const RING_CIRC = 2 * Math.PI * RING_R;
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto">
@@ -221,36 +220,21 @@ function Game({ players }: { players: Player[] }) {
       {/* Required letter + timer ring */}
       <div className="flex items-center gap-5 mb-6">
         {/* Timer ring */}
-        <div className="relative w-16 h-16 flex items-center justify-center">
-          <svg className="absolute inset-0 -rotate-90" width={64} height={64}>
-            <circle
-              cx={32}
-              cy={32}
-              r={RING_R}
-              stroke="rgba(255,255,255,0.08)"
-              strokeWidth={5}
-              fill="none"
-            />
-            <motion.circle
-              cx={32}
-              cy={32}
-              r={RING_R}
-              stroke={timeLeft <= 4 ? "#ff5e5b" : "#ff5e5b99"}
-              strokeWidth={5}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={RING_CIRC}
-              animate={{ strokeDashoffset: RING_CIRC * (1 - ringFraction) }}
-              transition={{ duration: 0.4, ease: "linear" }}
-            />
-          </svg>
+        <CircleProgress
+          fraction={ringFraction}
+          size={64}
+          stroke={5}
+          color={timeLeft <= 4 ? "#ff5e5b" : "#ff5e5b99"}
+          trackColor="rgba(255,255,255,0.08)"
+          tween={0.4}
+        >
           <span
             className="font-display text-xl font-bold tabular-nums"
             style={{ color: timeLeft <= 4 ? ACCENT : "rgba(255,255,255,0.85)" }}
           >
             {timeLeft}
           </span>
-        </div>
+        </CircleProgress>
 
         {/* Required letter badge */}
         <div className="flex flex-col items-center gap-1">

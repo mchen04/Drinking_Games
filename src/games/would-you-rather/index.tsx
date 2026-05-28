@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { GlassCard, NeonButton, RequirePlayers, GameHeading, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
@@ -77,10 +77,7 @@ function Game({ players }: { players: Player[] }) {
     splitA: 50,
   }));
 
-  const outcome = useMemo(
-    () => (round.revealed ? computeOutcome(round.votes, players) : null),
-    [round.revealed, round.votes, players],
-  );
+  const outcome = round.revealed ? computeOutcome(round.votes, players) : null;
 
   // How many players haven't voted yet
   const votedCount = players.filter((p) => round.votes[p.id] != null).length;

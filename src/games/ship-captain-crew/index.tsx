@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { Die, NeonButton, RequirePlayers, GameHeading, PlayerChip } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { randInt } from "@/lib/random";
@@ -73,6 +74,7 @@ function Game({ players }: { players: Player[] }) {
   const [locked, setLocked] = useState<boolean[]>([false, false, false, false, false]);
   const [rollCount, setRollCount] = useState(0);
   const [rolling, setRolling] = useState(false);
+  const { after, clearAll } = useTimeouts();
 
   // Accumulated results for the current round
   const [results, setResults] = useState<TurnResult[]>([]);
@@ -86,6 +88,7 @@ function Game({ players }: { players: Player[] }) {
 
   function doRoll() {
     if (!canRoll) return;
+    clearAll();
     setRolling(true);
     sfx.tick();
 
@@ -100,7 +103,7 @@ function Game({ players }: { players: Player[] }) {
     const newDice = dice.map((v, i) => (snapLocked[i] ? v : randInt(1, 6)));
     const newRollCount = rollCount + 1;
 
-    setTimeout(() => {
+    after(650, () => {
       // Auto-lock sequence dice
       const newLocked = autoLock(newDice, snapLocked);
       const newSecured = countSecured(newLocked, newDice);
@@ -120,11 +123,11 @@ function Game({ players }: { players: Player[] }) {
       // Auto-end turn if all 3 locked OR no rolls left
       if (nowHasAll || newRollCount >= MAX_ROLLS) {
         // Short delay then record result
-        setTimeout(() => {
+        after(600, () => {
           recordTurn(newDice, newLocked, nowHasAll, snapTurnIndex, snapResults, snapPlayer);
-        }, 600);
+        });
       }
-    }, 650);
+    });
   }
 
   function recordTurn(finalDice: number[], finalLocked: boolean[], gotAll: boolean, snapTurnIndex: number, snapResults: TurnResult[], snapPlayer: Player) {
@@ -147,14 +150,14 @@ function Game({ players }: { players: Player[] }) {
       setPhase("results");
       const validScores = newResults.map((r) => r.cargo).filter((s) => s >= 0);
       if (validScores.length > 0) {
-        setTimeout(() => {
+        after(300, () => {
           celebrate();
           sfx.win();
-        }, 300);
-        setTimeout(() => {
+        });
+        after(900, () => {
           drinkRain();
           sfx.pour();
-        }, 900);
+        });
       }
     } else {
       // Next player's turn

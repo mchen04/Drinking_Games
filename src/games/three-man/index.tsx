@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { Crown } from "lucide-react";
 import { Die, NeonButton, RequirePlayers, GameHeading, PlayerChip } from "@/components/ui";
 import type { Player } from "@/store/players";
@@ -24,6 +25,8 @@ function ThreeMan({ players }: { players: Player[] }) {
   const [msgs, setMsgs] = useState<string[]>([]);
   const [rolled, setRolled] = useState(false);
 
+  const { after } = useTimeouts();
+
   const roller = players[turn % players.length];
   const right = players[(turn + 1) % players.length];
   const left = players[(turn - 1 + players.length) % players.length];
@@ -38,7 +41,7 @@ function ThreeMan({ players }: { players: Player[] }) {
     const b = randInt(1, 6);
     setDice([a, b]);
 
-    setTimeout(() => {
+    after(650, () => {
       setRolling(false);
       sfx.ding();
       const out: string[] = [];
@@ -58,7 +61,7 @@ function ThreeMan({ players }: { players: Player[] }) {
       if (sum === 11) out.push(`Eleven — ${left.name} (to the left) drinks.`);
       if (out.length === 0) out.push("Safe. Pass the dice along.");
       setMsgs(out);
-    }, 650);
+    });
   }
 
   function nextPlayer() {

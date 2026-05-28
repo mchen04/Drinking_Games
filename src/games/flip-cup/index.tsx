@@ -197,6 +197,8 @@ function Race({ players }: { players: Player[] }) {
 
         // Check win condition
         if (next >= teamSize) {
+          // Stop the racing timer immediately — don't wait for the phase effect
+          if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
           if (winTimeoutRef.current) { clearTimeout(winTimeoutRef.current); winTimeoutRef.current = null; }
           winTimeoutRef.current = setTimeout(() => {
             winTimeoutRef.current = null;
@@ -213,6 +215,7 @@ function Race({ players }: { players: Player[] }) {
   }
 
   function rematch() {
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
     if (flipTimeoutRef.current) { clearTimeout(flipTimeoutRef.current); flipTimeoutRef.current = null; }
     if (winTimeoutRef.current) { clearTimeout(winTimeoutRef.current); winTimeoutRef.current = null; }
     teams.current = buildTeams(players);
