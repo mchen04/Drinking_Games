@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Wheel, RequirePlayers, GameHeading, DrinkCallout, type WheelSegment } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { drinkRain } from "@/lib/confetti";
+import { sfx } from "@/lib/sound";
 
 export default function ShotRoulette() {
   return (
@@ -33,6 +34,7 @@ function Roulette({ players }: { players: Player[] }) {
         onResult={(index) => {
           setLoser(players[index]);
           drinkRain();
+          sfx.pour();
         }}
       />
 
