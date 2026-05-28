@@ -47,7 +47,8 @@ export default function HigherOrLower() {
 
     t1Ref.current = setTimeout(() => {
       t1Ref.current = null;
-      const correct = higher ? drawn.value >= current.value : drawn.value <= current.value;
+      // A tie counts as a loss (you drink) — matches the classic rule + Ride the Bus.
+      const correct = higher ? drawn.value > current.value : drawn.value < current.value;
       if (correct) {
         sfx.ding();
         pop(0.5, 0.4);

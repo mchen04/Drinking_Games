@@ -32,6 +32,7 @@ interface PlayerRole {
 
 function assignRoles(finishOrder: Player[]): PlayerRole[] {
   const n = finishOrder.length;
+  // Vice roles only exist with 4+ players: a 3-player game is President / Neutral / Scum.
   return finishOrder.map((player, i) => {
     let role: Role;
     if (i === 0) role = "president";
