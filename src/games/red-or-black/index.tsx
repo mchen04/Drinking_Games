@@ -104,6 +104,14 @@ export default function RedOrBlack() {
   );
 
   function reset() {
+    if (outerTimerRef.current !== null) {
+      clearTimeout(outerTimerRef.current);
+      outerTimerRef.current = null;
+    }
+    if (innerTimerRef.current !== null) {
+      clearTimeout(innerTimerRef.current);
+      innerTimerRef.current = null;
+    }
     setDeck(createDeck());
     setRevealed(null);
     setResult(null);

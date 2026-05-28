@@ -74,6 +74,7 @@ export default function HigherOrLower() {
   }
 
   function reset() {
+    clearTimers();
     const d = createDeck();
     setDeck(d);
     setCurrent(d[0]);

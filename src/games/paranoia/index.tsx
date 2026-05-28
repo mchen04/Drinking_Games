@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, RotateCcw } from "lucide-react";
+import { useTimeouts } from "@/lib/timers";
 import {
   RequirePlayers,
   GameHeading,
@@ -42,36 +43,24 @@ type CoinSide = "heads" | "tails";
 function useCoinFlip(onDone: (result: CoinSide) => void) {
   const [spinning, setSpinning] = useState(false);
   const [side, setSide] = useState<CoinSide | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { after, clearAll } = useTimeouts();
   const onDoneRef = useRef(onDone);
-  useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   function flip() {
-    // Clear any orphaned timer before starting a new one
-    if (timerRef.current !== null) {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
+    clearAll(); // cancel any in-flight flip before starting a new one
     setSpinning(true);
     setSide(null);
     sfx.whoosh();
-    timerRef.current = setTimeout(() => {
-      timerRef.current = null;
+    after(1200, () => {
       const result: CoinSide = Math.random() < 0.5 ? "heads" : "tails";
       setSide(result);
       setSpinning(false);
       onDoneRef.current(result);
-    }, 1200);
+    });
   }
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, []);
 
   return { flip, spinning, side };
 }

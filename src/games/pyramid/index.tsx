@@ -7,6 +7,7 @@ import { createDeck, type Card } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
 import { celebrate } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
+import { useTimeouts } from "@/lib/timers";
 
 const ACCENT = "#18e7ff";
 
@@ -56,6 +57,7 @@ function buildInitial(): PyramidState {
 
 export default function Pyramid() {
   const [state, setState] = useState<PyramidState>(buildInitial);
+  const { after } = useTimeouts();
 
   const { cards, flippedCount, done } = state;
 
@@ -78,12 +80,12 @@ export default function Pyramid() {
     const isDone = nextCount >= FLIP_ORDER.length;
     setState((s) => ({ ...s, flippedCount: nextCount, done: isDone }));
     if (isDone) {
-      setTimeout(() => {
+      after(400, () => {
         sfx.win();
         celebrate();
-      }, 400);
+      });
     }
-  }, [done, flippedCount]);
+  }, [done, flippedCount, after]);
 
   const reset = useCallback(() => {
     sfx.click();
