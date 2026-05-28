@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Lightbulb, RotateCcw } from "lucide-react";
-import { DrinkCallout, GameHeading, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
+import { CircleProgress, DrinkCallout, GameHeading, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { drinkRain, pop } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
@@ -89,7 +89,6 @@ function TwoTruths({ players }: { players: Player[] }) {
   }
 
   const timerPercent = (timeLeft / TIMER_SECONDS) * 100;
-  const circumference = 2 * Math.PI * 26; // r=26
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto px-2">
@@ -132,36 +131,20 @@ function TwoTruths({ players }: { players: Player[] }) {
 
           {/* Timer ring */}
           <div className="flex flex-col items-center gap-3">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-              <svg width={60} height={60} className="absolute rotate-[-90deg]">
-                <circle
-                  cx={30}
-                  cy={30}
-                  r={26}
-                  fill="none"
-                  stroke="rgba(255,255,255,0.1)"
-                  strokeWidth={4}
-                />
-                <circle
-                  cx={30}
-                  cy={30}
-                  r={26}
-                  fill="none"
-                  stroke={timeLeft <= 5 ? "#ff5e5b" : ACCENT}
-                  strokeWidth={4}
-                  strokeLinecap="round"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={circumference * (1 - timerPercent / 100)}
-                  style={{ transition: "stroke-dashoffset 0.9s linear, stroke 0.3s" }}
-                />
-              </svg>
+            <CircleProgress
+              fraction={timerPercent / 100}
+              size={60}
+              stroke={4}
+              color={timeLeft <= 5 ? "#ff5e5b" : ACCENT}
+              tween={0.9}
+            >
               <span
                 className="text-lg font-display tabular-nums"
                 style={{ color: timeLeft <= 5 ? "#ff5e5b" : "rgba(255,255,255,0.8)" }}
               >
                 {timeLeft}
               </span>
-            </div>
+            </CircleProgress>
 
             {!timerActive && timeLeft === TIMER_SECONDS ? (
               <NeonButton onClick={startTimer} size="sm" variant="ghost">

@@ -85,7 +85,7 @@ function Game({ players }: { players: Player[] }) {
       // After 2s auto-dismiss and continue to next turn.
       penaltyTimeoutRef.current = setTimeout(() => {
         clearPenalty();
-        setTurnIndex((t) => (t + 1) % players.length);
+        setTurnIndex((t) => t + 1); // monotonic; modulo is applied only in render
         setTimeLeft(TURN_SECONDS);
         setInput("");
         inputRef.current?.focus();
@@ -159,7 +159,7 @@ function Game({ players }: { players: Player[] }) {
       timerRef.current = null;
     }
 
-    startNextTurn((turnIndex + 1) % players.length);
+    startNextTurn(turnIndex + 1); // monotonic; modulo is applied only in render
   }
 
   function handleReset() {
