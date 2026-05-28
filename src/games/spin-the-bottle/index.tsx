@@ -210,6 +210,15 @@ function Game({ players }: { players: Player[] }) {
               : `drop-shadow(0 0 6px ${ACCENT}88)`,
           }}
           onClick={spin}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              spin();
+            }
+          }}
+          role="button"
+          tabIndex={spinning ? -1 : 0}
+          aria-label="Spin the bottle"
           title="Click to spin"
         >
           🍾
