@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { NEON } from "@/lib/confetti";
 
 // deterministic bubble field (no Math.random → no hydration mismatch)
 const BUBBLES = Array.from({ length: 18 }).map((_, i) => ({
@@ -9,7 +10,7 @@ const BUBBLES = Array.from({ length: 18 }).map((_, i) => ({
   size: 6 + ((i * 13) % 22),
   delay: (i % 9) * 0.8,
   duration: 9 + ((i * 7) % 8),
-  color: ["#ff2d95", "#18e7ff", "#b6ff3c", "#ffb627", "#9d4edd"][i % 5],
+  color: NEON[i % NEON.length],
 }));
 
 /** Fixed full-viewport animated backdrop: drifting glow blobs + rising bubbles. */

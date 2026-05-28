@@ -2,7 +2,7 @@
 
 import confetti from "canvas-confetti";
 
-const NEON = ["#ff2d95", "#18e7ff", "#b6ff3c", "#ffb627", "#9d4edd", "#2de2c0"];
+export const NEON = ["#ff2d95", "#18e7ff", "#b6ff3c", "#ffb627", "#9d4edd", "#2de2c0"];
 
 /** Celebratory burst from both lower corners in the neon palette. */
 export function celebrate() {
