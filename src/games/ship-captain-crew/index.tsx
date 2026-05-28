@@ -185,6 +185,7 @@ function Game({ players }: { players: Player[] }) {
   }
 
   function nextRound() {
+    clearAll();
     setRound((r) => r + 1);
     setTurnIndex(0);
     setPhase("rolling");

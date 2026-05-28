@@ -18,7 +18,7 @@ type Target = (typeof TARGET_OPTIONS)[number];
 type Phase = "idle" | "running" | "paused" | "done";
 
 export default function Centurion() {
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
   const [target, setTarget] = useState<Target>(100);
   const [phase, setPhase] = useState<Phase>("idle");
   const [shot, setShot] = useState(0);
@@ -113,6 +113,7 @@ export default function Centurion() {
 
   function handleReset() {
     clearTick();
+    clearAll();
     setPhase("idle");
     setShot(0);
     setElapsed(0);

@@ -251,6 +251,7 @@ function RouletteGame({ players }: { players: Player[] }) {
   }
 
   function reload() {
+    clearAll();
     sfx.whoosh();
     setLoadedIdx(randInt(0, NUM_GLASSES - 1));
     setGlasses(Array(NUM_GLASSES).fill("hidden") as GlassState[]);
