@@ -1,11 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { RotateCcw } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout, PlayerChip, RequirePlayers } from "@/components/ui";
 import { usePlayers, type Player } from "@/store/players";
 import { createDealer } from "@/lib/random";
+import { useTimeouts } from "@/lib/timers";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
 import { TRUTHS, DARES } from "./data";
@@ -41,16 +42,7 @@ function GameBoard({ players }: { players: Player[] }) {
 
   const dealersRef = useRef<Dealers>(makeDealers());
 
-  const chickenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (chickenTimerRef.current !== null) {
-        clearTimeout(chickenTimerRef.current);
-        chickenTimerRef.current = null;
-      }
-    };
-  }, []);
+  const { after, clearAll } = useTimeouts();
 
   const currentPlayer: Player | null =
     hasPlayers ? players[turnIndex % players.length] : null;
@@ -79,22 +71,16 @@ function GameBoard({ players }: { players: Player[] }) {
     sfx.buzz();
     drinkRain();
     setShowDrink(true);
-    if (chickenTimerRef.current !== null) {
-      clearTimeout(chickenTimerRef.current);
-    }
-    chickenTimerRef.current = setTimeout(() => {
-      chickenTimerRef.current = null;
+    clearAll();
+    after(2200, () => {
       setShowDrink(false);
       setPhase("pick");
       if (hasPlayers) setTurnIndex((t) => t + 1);
-    }, 2200);
+    });
   }
 
   function resetGame() {
-    if (chickenTimerRef.current !== null) {
-      clearTimeout(chickenTimerRef.current);
-      chickenTimerRef.current = null;
-    }
+    clearAll();
     sfx.click();
     dealersRef.current = makeDealers();
     setPhase("pick");

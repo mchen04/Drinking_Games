@@ -38,16 +38,3 @@ export function createDeck(shuffled = true): Card[] {
   }
   return shuffled ? shuffle(deck) : deck;
 }
-
-/** Human label e.g. "Queen of Hearts". */
-export function cardName(card: Card): string {
-  const ranks: Record<Rank, string> = {
-    A: "Ace", J: "Jack", Q: "Queen", K: "King",
-    "2": "Two", "3": "Three", "4": "Four", "5": "Five", "6": "Six",
-    "7": "Seven", "8": "Eight", "9": "Nine", "10": "Ten",
-  };
-  const suits: Record<Suit, string> = {
-    "♠": "Spades", "♥": "Hearts", "♦": "Diamonds", "♣": "Clubs",
-  };
-  return `${ranks[card.rank]} of ${suits[card.suit]}`;
-}

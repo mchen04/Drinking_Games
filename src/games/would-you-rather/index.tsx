@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { useTimeouts } from "@/lib/timers";
 import { GlassCard, NeonButton, RequirePlayers, GameHeading, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { randInt, createDealer } from "@/lib/random";
@@ -57,18 +58,8 @@ function computeOutcome(
 
 function Game({ players }: { players: Player[] }) {
   const dealer = useRef(createDealer(DILEMMAS));
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const revealInFlightRef = useRef(false);
-
-  // Clear the reveal timer on unmount.
-  useEffect(() => {
-    return () => {
-      if (revealTimerRef.current !== null) {
-        clearTimeout(revealTimerRef.current);
-        revealTimerRef.current = null;
-      }
-    };
-  }, []);
+  const { after, clearAll } = useTimeouts();
 
   const [round, setRound] = useState<RoundState>(() => ({
     dilemma: dealer.current.next(),
@@ -102,27 +93,21 @@ function Game({ players }: { players: Player[] }) {
     const out = computeOutcome(round.votes, players);
     setRound((prev) => ({ ...prev, revealed: true, splitA }));
     // Clear any stale timer before starting a new one.
-    if (revealTimerRef.current !== null) {
-      clearTimeout(revealTimerRef.current);
-    }
+    clearAll();
     // Small delay so reveal animation can start before confetti.
-    revealTimerRef.current = setTimeout(() => {
-      revealTimerRef.current = null;
+    after(350, () => {
       revealInFlightRef.current = false;
       if (out.majority === "tie") {
         drinkRain();
       } else {
         pop(0.5, 0.4);
       }
-    }, 350);
+    });
   }
 
   function nextDilemma() {
     // Cancel any pending reveal confetti for the old dilemma.
-    if (revealTimerRef.current !== null) {
-      clearTimeout(revealTimerRef.current);
-      revealTimerRef.current = null;
-    }
+    clearAll();
     revealInFlightRef.current = false;
     sfx.whoosh();
     setRound({

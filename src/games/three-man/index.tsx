@@ -24,6 +24,7 @@ function ThreeMan({ players }: { players: Player[] }) {
   const [threeMan, setThreeMan] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<string[]>([]);
   const [rolled, setRolled] = useState(false);
+  const [mustReroll, setMustReroll] = useState(false);
 
   const { after } = useTimeouts();
 
@@ -56,15 +57,17 @@ function ThreeMan({ players }: { players: Player[] }) {
           out.push(`🎲 A 3! The Three Man (${threeManPlayer?.name}) drinks ${threes > 1 ? "twice" : "once"}.`);
         }
       }
-      if (a === b) out.push(`Doubles! Hand out ${a} drinks however you like, then roll again.`);
+      if (a === b) out.push(`Doubles! Hand out ${a} drinks however you like — then you MUST roll again.`);
       if (sum === 7) out.push(`Seven — ${right.name} (to the right) drinks.`);
       if (sum === 11) out.push(`Eleven — ${left.name} (to the left) drinks.`);
       if (out.length === 0) out.push("Safe. Pass the dice along.");
       setMsgs(out);
+      setMustReroll(a === b); // doubles force the same player to roll again
     });
   }
 
   function nextPlayer() {
+    if (mustReroll) return; // can't pass the dice until the doubles re-roll is done
     setTurn((t) => t + 1);
     setMsgs([]);
     setRolled(false);
@@ -115,9 +118,9 @@ function ThreeMan({ players }: { players: Player[] }) {
 
       <div className="flex gap-3">
         <NeonButton onClick={roll} size="lg" variant="success" disabled={rolling}>
-          {rolled ? "Re-roll" : "Roll dice"}
+          {mustReroll ? "Roll again (doubles!)" : rolled ? "Re-roll" : "Roll dice"}
         </NeonButton>
-        <NeonButton onClick={nextPlayer} size="lg" variant="ghost" disabled={!rolled || rolling}>
+        <NeonButton onClick={nextPlayer} size="lg" variant="ghost" disabled={!rolled || rolling || mustReroll}>
           Next player →
         </NeonButton>
       </div>
