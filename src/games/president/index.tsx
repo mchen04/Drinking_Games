@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, RotateCcw, Shuffle } from "lucide-react";
 import { NeonButton, RequirePlayers, GameHeading, PlayerChip, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { sfx } from "@/lib/sound";
+import { useTimeouts } from "@/lib/timers";
 import { celebrate, drinkRain } from "@/lib/confetti";
 import { pickRandom } from "@/lib/random";
 import { RULES_SECTIONS, PRESIDENT_COMMANDS } from "./data";
@@ -62,6 +63,7 @@ function PresidentGame({ players }: { players: Player[] }) {
   const [roles, setRoles] = useState<PlayerRole[]>([]);
   const [command, setCommand] = useState<string | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const { after } = useTimeouts();
 
   const remaining = players.filter((p) => !finishOrder.some((f) => f.id === p.id));
 
@@ -76,10 +78,10 @@ function PresidentGame({ players }: { players: Player[] }) {
       const assigned = assignRoles(updated);
       setRoles(assigned);
       setPhase("reveal");
-      setTimeout(() => {
+      after(300, () => {
         sfx.win();
         celebrate();
-      }, 300);
+      });
     }
   }
 

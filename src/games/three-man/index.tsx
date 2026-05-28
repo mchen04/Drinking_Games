@@ -53,7 +53,7 @@ function ThreeMan({ players }: { players: Player[] }) {
           setThreeMan(roller.id);
           out.push(`👑 ${roller.name} is the new Three Man!`);
         } else {
-          out.push(`🎲 A 3! The Three Man (${threeManPlayer?.name}) drinks ${threes > 1 ? "twice" : ""}.`);
+          out.push(`🎲 A 3! The Three Man (${threeManPlayer?.name}) drinks ${threes > 1 ? "twice" : "once"}.`);
         }
       }
       if (a === b) out.push(`Doubles! Hand out ${a} drinks however you like, then roll again.`);

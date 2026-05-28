@@ -237,7 +237,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
             <div className="flex flex-wrap justify-center gap-3">
               {Array.from({ length: voterList.length + 1 }, (_, i) => i).map((n) => (
                 <NeonButton
-                  key={n}
+                  key={`guess-${n}`}
                   size="md"
                   variant={guess === n ? "danger" : "ghost"}
                   onClick={() => startSecretPhase(n)}
