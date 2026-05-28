@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { RotateCcw, Trophy } from "lucide-react";
 import { NeonButton, GameHeading } from "@/components/ui";
 import { sfx } from "@/lib/sound";
@@ -224,6 +224,14 @@ export default function BeerPong() {
       });
     },
     [winner],
+  );
+
+  // Cancel a pending winner timer if the component unmounts mid-celebration.
+  useEffect(
+    () => () => {
+      if (winnerTimerRef.current !== null) clearTimeout(winnerTimerRef.current);
+    },
+    [],
   );
 
   function handleRematch() {
