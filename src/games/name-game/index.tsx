@@ -83,8 +83,7 @@ function Game({ players }: { players: Player[] }) {
             clearInterval(timerRef.current);
             timerRef.current = null;
           }
-          handleTimeout();
-          return 0;
+          return 0; // the timeLeft===0 effect fires the penalty (no side effects in the updater)
         }
         sfx.tick();
         return t - 1;
@@ -107,6 +106,13 @@ function Game({ players }: { players: Player[] }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnIdx]);
+
+  // Fire the timeout penalty when the countdown hits zero. Kept out of the
+  // setTimeLeft updater so the updater stays pure (no side effects).
+  useEffect(() => {
+    if (timeLeft === 0) handleTimeout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft]);
 
   function handleTimeout() {
     sfx.buzz();

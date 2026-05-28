@@ -14,6 +14,8 @@ export interface WheelSegment {
 export interface WheelProps {
   segments: WheelSegment[];
   onResult?: (index: number, segment: WheelSegment) => void;
+  /** fired the moment a spin begins — clear any stale result UI here */
+  onSpinStart?: () => void;
   size?: number;
   className?: string;
 }
@@ -22,7 +24,7 @@ export interface WheelProps {
  * A spinning prize wheel. Renders a conic-gradient disc with rotated labels and
  * a fixed top pointer; lands precisely on a random segment and fires onResult.
  */
-export function Wheel({ segments, onResult, size = 320, className }: WheelProps) {
+export function Wheel({ segments, onResult, onSpinStart, size = 320, className }: WheelProps) {
   const controls = useAnimationControls();
   const rotation = useRef(0);
   const mounted = useRef(true);
@@ -41,6 +43,7 @@ export function Wheel({ segments, onResult, size = 320, className }: WheelProps)
     if (busy || n === 0) return;
     setBusy(true);
     setWinner(null);
+    onSpinStart?.();
     sfx.whoosh();
 
     const target = randInt(0, n - 1);

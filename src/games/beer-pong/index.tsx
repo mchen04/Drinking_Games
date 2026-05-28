@@ -207,7 +207,8 @@ export default function BeerPong() {
         // Win check computed from next state — no stale-closure risk
         const newRemaining = next[teamIdx].filter((s) => !s).length;
         if (newRemaining <= 0) {
-          const winningTeam = teamNamesRef.current[teamIdx];
+          // A team whose cups are all sunk is OUT — the OTHER team wins.
+          const winningTeam = teamNamesRef.current[teamIdx === 0 ? 1 : 0];
           // Clear any existing timer before scheduling a new one
           if (winnerTimerRef.current !== null) {
             clearTimeout(winnerTimerRef.current);
@@ -257,7 +258,7 @@ export default function BeerPong() {
     <div className="flex flex-col items-center w-full">
       <GameHeading
         title="Beer Pong"
-        subtitle="Tap a cup to mark it sunk. First team to clear all 10 wins!"
+        subtitle="Tap a team's cup when it gets sunk. Lose all 10 and you're out — last team standing wins! 🏆"
         accent={ACCENT}
       />
 

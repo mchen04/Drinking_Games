@@ -76,6 +76,7 @@ function Game({ players }: { players: Player[] }) {
       <Wheel
         segments={segments}
         size={300}
+        onSpinStart={() => setResult(null)}
         onResult={(index) => handleResult(index)}
       />
 
