@@ -58,7 +58,7 @@ function Game({ players }: { players: Player[] }) {
   const [penaltyKey, setPenaltyKey] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -191,6 +191,11 @@ function Game({ players }: { players: Player[] }) {
   }
 
   function handleReset() {
+    clearAll();
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     const newStarter = pickRandom(STARTERS);
     setChain([newStarter]);
     setInput("");

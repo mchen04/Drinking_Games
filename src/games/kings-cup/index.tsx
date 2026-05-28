@@ -37,7 +37,7 @@ export default function KingsCup() {
   const [kings, setKings] = useState(0);
   const [over, setOver] = useState(false);
 
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
   const rule = useMemo(() => (drawn ? RULES[drawn.rank] : null), [drawn]);
 
   function draw() {
@@ -63,6 +63,7 @@ export default function KingsCup() {
   }
 
   function reset() {
+    clearAll();
     setDeck(createDeck());
     setDrawn(null);
     setKings(0);

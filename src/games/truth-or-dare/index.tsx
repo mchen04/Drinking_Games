@@ -91,6 +91,10 @@ function GameBoard({ players }: { players: Player[] }) {
   }
 
   function resetGame() {
+    if (chickenTimerRef.current !== null) {
+      clearTimeout(chickenTimerRef.current);
+      chickenTimerRef.current = null;
+    }
     sfx.click();
     dealersRef.current = makeDealers();
     setPhase("pick");

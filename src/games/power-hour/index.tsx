@@ -37,7 +37,7 @@ export default function PowerHour() {
   const stateRef = useRef({ round, secsLeft, totalRounds, done });
   stateRef.current = { round, secsLeft, totalRounds, done };
 
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -97,6 +97,7 @@ export default function PowerHour() {
   }
 
   function resetState() {
+    clearAll();
     clearTick();
     setRunning(false);
     setDone(false);

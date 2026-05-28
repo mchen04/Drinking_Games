@@ -63,7 +63,7 @@ function PresidentGame({ players }: { players: Player[] }) {
   const [roles, setRoles] = useState<PlayerRole[]>([]);
   const [command, setCommand] = useState<string | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
 
   const remaining = players.filter((p) => !finishOrder.some((f) => f.id === p.id));
 
@@ -92,6 +92,7 @@ function PresidentGame({ players }: { players: Player[] }) {
   }
 
   function newHand() {
+    clearAll();
     sfx.whoosh();
     setFinishOrder([]);
     setRoles([]);

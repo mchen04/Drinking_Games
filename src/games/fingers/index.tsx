@@ -78,7 +78,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
   // The player who must drink (last one standing)
   const [loser, setLoser] = useState<Player | null>(null);
 
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
 
   const guesser = remaining[guesserIdx] ?? remaining[0];
   // All players who vote this round (everyone except guesser)
@@ -168,6 +168,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
   }, [totalIn, guess, remaining, guesser, guesserIdx]);
 
   function resetGame() {
+    clearAll();
     setRemaining(allPlayers);
     setGuesserIdx(0);
     setPhase("guess");

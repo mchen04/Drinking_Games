@@ -32,7 +32,7 @@ export default function BuzzGame() {
 type Outcome = "wrong" | "new-record" | "right" | null;
 
 function Buzz({ players }: { players: Player[] }) {
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
   const [count, setCount] = useState(1);
   const [turn, setTurn] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -100,6 +100,7 @@ function Buzz({ players }: { players: Player[] }) {
   }, [locked, buzzExpected, penalise, advanceCount]);
 
   function reset() {
+    clearAll();
     setCount(1);
     setTurn(0);
     setOutcome(null);

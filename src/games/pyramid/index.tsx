@@ -57,7 +57,7 @@ function buildInitial(): PyramidState {
 
 export default function Pyramid() {
   const [state, setState] = useState<PyramidState>(buildInitial);
-  const { after } = useTimeouts();
+  const { after, clearAll } = useTimeouts();
 
   const { cards, flippedCount, done } = state;
 
@@ -88,9 +88,10 @@ export default function Pyramid() {
   }, [done, flippedCount, after]);
 
   const reset = useCallback(() => {
+    clearAll();
     sfx.click();
     setState(buildInitial());
-  }, []);
+  }, [clearAll]);
 
   return (
     <div className="flex flex-col items-center">

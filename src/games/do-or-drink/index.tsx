@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { RotateCcw, Zap } from "lucide-react";
 import {
   NeonButton,
@@ -60,11 +60,6 @@ function DoOrDrinkGame({ players }: { players: Player[] }) {
     drinksTaken: 0,
     turnIndex: 0,
   });
-
-  // Reset dealer ref when component remounts (shouldn't happen, but safety).
-  useEffect(() => {
-    dealerRef.current = createDealer(DARES);
-  }, []);
 
   const hasTurns = players.length > 0;
   const currentPlayer = hasTurns ? players[state.turnIndex % players.length] : null;
