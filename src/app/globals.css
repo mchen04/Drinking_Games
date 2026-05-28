@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/*  POUR DECISIONS — neon-noir nightclub design tokens                 */
+/* ------------------------------------------------------------------ */
+@theme {
+  /* base surfaces */
+  --color-ink: #07040f;
+  --color-ink-2: #0d0820;
+  --color-ink-3: #150c2e;
+
+  /* neon accents */
+  --color-neon-pink: #ff2d95;
+  --color-neon-magenta: #ff4fd8;
+  --color-neon-cyan: #18e7ff;
+  --color-neon-lime: #b6ff3c;
+  --color-neon-amber: #ffb627;
+  --color-neon-violet: #9d4edd;
+  --color-neon-coral: #ff5e5b;
+  --color-neon-teal: #2de2c0;
+  --color-neon-indigo: #6c5ce7;
+  --color-neon-blue: #4d7cff;
+
+  /* fonts (wired via next/font css variables) */
+  --font-display: var(--font-unbounded), "Arial Black", sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+
+  /* motion */
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.5s linear infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+  --animate-gradient: gradient-pan 14s ease infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-30px) translateX(12px); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.55; filter: blur(2px); }
+  50% { opacity: 1; filter: blur(0px); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes gradient-pan {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@keyframes rise {
+  0% { transform: translateY(110%) scale(0.6); opacity: 0; }
+  10% { opacity: 0.9; }
+  90% { opacity: 0.6; }
+  100% { transform: translateY(-120%) scale(1.1); opacity: 0; }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Base                                                               */
+/* ------------------------------------------------------------------ */
+:root { color-scheme: dark; }
+
+* { -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  background-color: var(--color-ink);
+  color: #f4eefb;
+  font-family: var(--font-body);
+  overscroll-behavior-y: none;
+}
+
+body {
+  min-height: 100dvh;
+  background-image:
+    radial-gradient(60rem 60rem at 12% -10%, rgba(157, 78, 221, 0.18), transparent 60%),
+    radial-gradient(50rem 50rem at 110% 10%, rgba(24, 231, 255, 0.12), transparent 55%),
+    radial-gradient(55rem 55rem at 50% 120%, rgba(255, 45, 149, 0.14), transparent 60%);
+  background-attachment: fixed;
+}
+
+::selection { background: var(--color-neon-pink); color: #fff; }
+
+/* thin neon scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--color-neon-violet), var(--color-neon-pink));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Reusable component utilities                                       */
+/* ------------------------------------------------------------------ */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.045);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .glass-strong {
+    background: rgba(20, 12, 40, 0.72);
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .neon-text {
+    text-shadow:
+      0 0 8px rgba(255, 255, 255, 0.35),
+      0 0 24px currentColor,
+      0 0 48px currentColor;
+  }
+
+  .neon-ring {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 0 18px -2px currentColor,
+      0 0 42px -10px currentColor;
+  }
+
+  .text-balance { text-wrap: balance; }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+}

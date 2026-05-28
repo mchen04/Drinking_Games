@@ -1,0 +1,23 @@
+/** Example prompts for the "need ideas?" helper in Two Truths & a Lie. */
+export const IDEA_PROMPTS: string[] = [
+  "I've been to more than 5 countries.",
+  "I once ate an entire pizza by myself.",
+  "I have a secret talent nobody here knows about.",
+  "I was in a band in high school.",
+  "I've met a celebrity by complete accident.",
+  "I once fell asleep on public transit and missed my stop by 6 stations.",
+  "I've gone skydiving.",
+  "I can speak more than one language fluently.",
+  "I've been on TV (or in a movie).",
+  "I broke a bone doing something embarrassing.",
+  "I've worked a job most people would find surprising.",
+  "I once stayed up for more than 36 hours straight.",
+  "I have a scar with a good story behind it.",
+  "I've been mistaken for someone famous.",
+  "I once lived in a different country for more than a month.",
+  "I've won a competition that involved physical skill.",
+  "I've read more than 50 books in a single year.",
+  "I used to have a pet with an unusual name.",
+  "I've been in a viral video (even briefly).",
+  "I once did something illegal that I still got away with.",
+];

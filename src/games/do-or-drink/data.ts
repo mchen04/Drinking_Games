@@ -1,0 +1,61 @@
+/**
+ * 55 dares for Do or Drink — escalating chaos energy, party-appropriate.
+ * Tiers roughly: Warm-Up (1-15) → Chaos (16-35) → Unhinged (36-55)
+ */
+export const DARES: readonly string[] = [
+  // ── Warm-Up ──────────────────────────────────────────────────────────────
+  "Do your best impression of the person to your left.",
+  "Text someone 'we need to talk' and wait 30 seconds without explaining.",
+  "Talk in an accent of your choice for the next two rounds.",
+  "Tell the group your most embarrassing autocorrect fail.",
+  "Do 10 jumping jacks right now.",
+  "Let someone else post a story on your Instagram for 60 seconds.",
+  "Call the last person you texted and say 'I've been thinking about you' then hang up.",
+  "Show the group the last photo in your camera roll — no deleting first.",
+  "Speak only in questions until the next dare.",
+  "Give a dramatic 30-second TED Talk about your favorite snack.",
+  "Send a voice note to a friend making your best dinosaur roar.",
+  "Do your best runway walk across the room.",
+  "Let the group go through your most recent search history — 5 items.",
+  "Describe the last dream you remember in exactly 10 words.",
+  "Attempt to lick your elbow for 15 seconds.",
+
+  // ── Chaos ─────────────────────────────────────────────────────────────────
+  "Set your phone wallpaper to a photo chosen by the group for one full hour.",
+  "Do your best impression of a washing machine going through a spin cycle.",
+  "Text your most recent ex one single heart emoji. No context.",
+  "Wear something as a hat for the next three rounds — group decides what.",
+  "Do a 30-second stand-up comedy bit. Silence counts as applause.",
+  "Swap shoes with someone else for the rest of the round.",
+  "Do your most dramatic death scene — at least 20 seconds.",
+  "Let someone draw a small doodle on your arm with a marker.",
+  "Speak exclusively in song lyrics for the next two minutes.",
+  "Post a photo of you making your ugliest face on your main story.",
+  "Act out a silent movie version of how your last crush played out.",
+  "Call a random contact and sing the first four lines of 'Happy Birthday' to them.",
+  "Do a push-up for every year old you are. Group counts out loud.",
+  "Eat a condiment of the group's choosing — straight off a spoon.",
+  "Do your best celebrity impression and the group guesses who it is.",
+  "Speak only in a whisper for the next three rounds.",
+  "Let the group rename your Wi-Fi hotspot for the next hour.",
+  "Do a 60-second freestyle rap about the person to your right.",
+  "Pick someone in the group to serenade with a song from memory.",
+  "Put an ice cube down your shirt and hold it there for 30 seconds.",
+
+  // ── Unhinged ─────────────────────────────────────────────────────────────
+  "Let the group compose and send a LinkedIn post from your account. They write it, you approve (or drink).",
+  "Demonstrate exactly how you dance when nobody is watching.",
+  "Read your most recent DMs aloud — last five messages in any conversation.",
+  "Let someone pick a contact in your phone to whom you must send a meme of their choice.",
+  "Do your best impression of a seagull fighting another seagull over a chip.",
+  "Confess the most chaotic thing you've done in the last 30 days.",
+  "Act out waking up from a 100-year sleep and discovering modern life. 45 seconds minimum.",
+  "Let the group change your name in someone's phone (their choice of contact) for the rest of the night.",
+  "Put your phone on speaker and call a food-delivery place, ordering something ridiculous, then hang up.",
+  "Change your social media bio to something the group dictates — for at least 20 minutes.",
+  "Demonstrate the exact face you make when you get a bill at a restaurant.",
+  "Do a slow-motion replay of how you walk into a room when you want to look cool.",
+  "Recreate the most embarrassing photo the group can find on your phone.",
+  "Let someone else type and send a reply to your most recent unopened text.",
+  "Stand up and give a 45-second Oscar acceptance speech thanking the group by name.",
+] as const;
