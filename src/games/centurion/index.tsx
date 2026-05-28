@@ -31,6 +31,13 @@ export default function Centurion() {
   const overallPct = (shot / target) * 100;
   const circularPct = elapsed / 60;
 
+  // Latest-ref: always holds current shot + target so the interval tick
+  // never closes over stale values regardless of when completeShotN was created.
+  const stateRef = useRef({ shot, target });
+  useEffect(() => {
+    stateRef.current = { shot, target };
+  }, [shot, target]);
+
   const clearTick = useCallback(() => {
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
@@ -58,8 +65,15 @@ export default function Centurion() {
     [shotControls, clearTick],
   );
 
+  // Keep a latest-ref to completeShotN so the interval callback always calls
+  // the most-recent version without being recreated itself.
+  const completeShotNRef = useRef(completeShotN);
+  useEffect(() => {
+    completeShotNRef.current = completeShotN;
+  }, [completeShotN]);
+
   const startTimer = useCallback(
-    (fromShot: number, fromElapsed: number, t: Target) => {
+    (fromShot: number, fromElapsed: number) => {
       clearTick();
       let localShot = fromShot;
       let localElapsed = fromElapsed;
@@ -70,11 +84,12 @@ export default function Centurion() {
         if (localElapsed >= 60) {
           localShot += 1;
           localElapsed = 0;
-          completeShotN(localShot, t);
+          // Read target from the latest-ref so this tick never uses a stale value.
+          completeShotNRef.current(localShot, stateRef.current.target);
         }
       }, 1000);
     },
-    [clearTick, completeShotN],
+    [clearTick],
   );
 
   // Cleanup on unmount
@@ -83,7 +98,7 @@ export default function Centurion() {
   function handleStart() {
     if (phase === "idle" || phase === "paused") {
       setPhase("running");
-      startTimer(shot, elapsed, target);
+      startTimer(shot, elapsed);
     }
   }
 

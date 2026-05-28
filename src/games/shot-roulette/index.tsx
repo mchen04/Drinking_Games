@@ -2,8 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
-import { Wheel, RequirePlayers, GameHeading, type WheelSegment } from "@/components/ui";
-import { DrinkCallout } from "@/components/ui";
+import { Wheel, RequirePlayers, GameHeading, DrinkCallout, type WheelSegment } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { drinkRain } from "@/lib/confetti";
 

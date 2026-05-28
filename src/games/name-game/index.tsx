@@ -76,8 +76,10 @@ function Game({ players }: { players: Player[] }) {
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          clearInterval(timerRef.current!);
-          timerRef.current = null;
+          if (timerRef.current !== null) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+          }
           handleTimeout();
           return 0;
         }

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
   NeonButton,
@@ -49,7 +49,7 @@ function Game({ players }: { players: Player[] }) {
 
   const currentPlayer = players[turnIndex % players.length];
   const currentWord = chain[chain.length - 1];
-  const usedWords = useRef<Set<string>>(new Set([currentWord.toLowerCase()]));
+  const usedWords = useMemo(() => new Set(chain.map((w) => w.toLowerCase())), [chain]);
 
   // Clear a penalty after a brief display window.
   const clearPenalty = useCallback(() => {
@@ -85,10 +85,13 @@ function Game({ players }: { players: Player[] }) {
       // After 2s auto-dismiss and continue to next turn.
       penaltyTimeoutRef.current = setTimeout(() => {
         clearPenalty();
-        startNextTurn((turnIndex + 1) % players.length);
+        setTurnIndex((t) => (t + 1) % players.length);
+        setTimeLeft(TURN_SECONDS);
+        setInput("");
+        inputRef.current?.focus();
       }, 2000);
     },
-    [turnIndex, players.length, clearPenalty, startNextTurn],
+    [players.length, clearPenalty],
   );
 
   // Run the countdown. Restart whenever turnIndex or penalty changes.
@@ -141,14 +144,13 @@ function Game({ players }: { players: Player[] }) {
     const wordLower = word.toLowerCase();
 
     // Check for repeated word.
-    if (usedWords.current.has(wordLower)) {
+    if (usedWords.has(wordLower)) {
       triggerPenalty("repeat", currentPlayer);
       return;
     }
 
     // Valid word — append and advance.
     sfx.tick();
-    usedWords.current.add(wordLower);
     setChain((c) => [...c, word]);
 
     // Clear countdown before advancing.
@@ -162,7 +164,6 @@ function Game({ players }: { players: Player[] }) {
 
   function handleReset() {
     const starter = pickRandom(STARTER_WORDS);
-    usedWords.current = new Set([starter.toLowerCase()]);
     setChain([starter]);
     setTurnIndex(0);
     setInput("");

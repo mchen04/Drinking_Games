@@ -131,6 +131,7 @@ function QuartersGame({ players }: { players: Player[] }) {
       opacity: [1, 1, 1, hit ? 0 : 1],
       transition: { duration: 0.65, ease: "easeIn" },
     });
+    if (!activeRef.current) return;
 
     if (hit) {
       sfx.ding();
@@ -149,6 +150,7 @@ function QuartersGame({ players }: { players: Player[] }) {
         y: [80, 95, 80, 95],
         transition: { duration: 0.3 },
       });
+      if (!activeRef.current) return;
       setStreak(0);
       setPhase("missed");
     }

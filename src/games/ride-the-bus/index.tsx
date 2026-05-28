@@ -1,7 +1,8 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
 import { createDeck, type Card, type Suit, isRed } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
@@ -79,8 +80,7 @@ function initialState(): RoundState {
 
 export default function RideTheBus() {
   const [state, setState] = useState<RoundState>(initialState);
-  // cancelToken increments on restart; lets in-flight timeouts no-op if stale.
-  const cancelToken = useRef(0);
+  const { after, clearAll } = useTimeouts();
 
   const { deck, cards, phase, outcome, totalDrinks, drinksThisRound, revealing } = state;
 
@@ -113,8 +113,6 @@ export default function RideTheBus() {
         drinkRain();
       }
 
-      const token = cancelToken.current;
-
       setState((prev) => ({
         ...prev,
         deck: updatedDeck,
@@ -125,17 +123,16 @@ export default function RideTheBus() {
         revealing: true,
       }));
 
-      setTimeout(() => {
-        if (cancelToken.current !== token) return;
+      after(1300, () => {
         setState((prev) => ({
           ...prev,
           phase: nextPhase(qPhase),
           outcome: null,
           revealing: false,
         }));
-      }, 1300);
+      });
     },
-    [cards, totalDrinks, drinksThisRound],
+    [cards, totalDrinks, drinksThisRound, after],
   );
 
   // ── Q1: Red or Black ──────────────────────────────────────────────────────
@@ -188,7 +185,7 @@ export default function RideTheBus() {
   // ── Restart ───────────────────────────────────────────────────────────────
   function restart() {
     sfx.whoosh();
-    cancelToken.current += 1;
+    clearAll();
     setState(initialState());
   }
 

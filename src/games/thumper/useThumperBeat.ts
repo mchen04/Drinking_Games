@@ -33,6 +33,8 @@ export function useThumperBeat({
   const lastBeatRef = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tapProcessedRef = useRef(false);
+  const onMissRef = useRef(onMiss);
+  useEffect(() => { onMissRef.current = onMiss; }, [onMiss]);
 
   const pulseControls = useAnimationControls();
 
@@ -83,14 +85,12 @@ export function useThumperBeat({
         const age = performance.now() - lastBeatRef.current;
         if (age > intervalMs * 0.85) {
           tapProcessedRef.current = true;
-          onMiss();
+          onMissRef.current();
         }
       }
     }, Math.round(intervalMs * 0.9));
 
     return () => clearInterval(missCheckTimer);
-  // onMiss is intentionally excluded — callers should memoize it (useCallback)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, bpm]);
 
   const judgeTap = useCallback((): "hit" | "miss" | null => {
