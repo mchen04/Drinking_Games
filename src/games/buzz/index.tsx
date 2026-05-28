@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useCallback } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Trophy, Zap } from "lucide-react";
 import {
   NeonButton,
@@ -31,6 +32,7 @@ export default function BuzzGame() {
 type Outcome = "wrong" | "new-record" | "right" | null;
 
 function Buzz({ players }: { players: Player[] }) {
+  const { after } = useTimeouts();
   const [count, setCount] = useState(1);
   const [turn, setTurn] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -46,11 +48,11 @@ function Buzz({ players }: { players: Player[] }) {
     setCount((c) => c + 1);
     setTurn((t) => t + 1);
     setOutcome("right");
-    setTimeout(() => {
+    after(500, () => {
       setOutcome(null);
       setLocked(false);
-    }, 500);
-  }, []);
+    });
+  }, [after]);
 
   /** The wrong button was pressed — penalise and reset. */
   const penalise = useCallback(() => {
@@ -62,18 +64,18 @@ function Buzz({ players }: { players: Player[] }) {
     const newRecord = reached > highScore;
     if (newRecord) {
       setHighScore(reached);
-      setTimeout(() => celebrate(), 350);
+      after(350, () => celebrate());
       setOutcome("new-record");
     } else {
       setOutcome("wrong");
     }
-    setTimeout(() => {
+    after(1800, () => {
       setCount(1);
       setTurn((t) => t + 1);
       setOutcome(null);
       setLocked(false);
-    }, 1800);
-  }, [count, highScore]);
+    });
+  }, [after, count, highScore]);
 
   const handleSay = useCallback(() => {
     if (locked) return;

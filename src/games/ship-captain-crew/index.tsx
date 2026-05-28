@@ -148,12 +148,22 @@ function Game({ players }: { players: Player[] }) {
       // All players done — show results
       setResults(newResults);
       setPhase("results");
-      const validScores = newResults.map((r) => r.cargo).filter((s) => s >= 0);
-      if (validScores.length > 0) {
+      // Mirror the winner/loser logic used for the ResultsView so feedback matches:
+      // celebrate only when there's a winner; drink alarm only when someone actually drinks
+      // (a unique loser, or everyone failed) — never on a tie.
+      const effectiveScore = (r: TurnResult) => (r.cargo >= 0 ? r.cargo : 0);
+      const maxScore = Math.max(...newResults.map(effectiveScore));
+      const minScore = Math.min(...newResults.map(effectiveScore));
+      const allNoScore = newResults.every((r) => r.cargo < 0);
+      const hasWinner = newResults.some((r) => r.cargo >= 0);
+      const someoneDrinks = allNoScore || minScore < maxScore;
+      if (hasWinner) {
         after(300, () => {
           celebrate();
           sfx.win();
         });
+      }
+      if (someoneDrinks) {
         after(900, () => {
           drinkRain();
           sfx.pour();

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { useTimeouts } from "@/lib/timers";
 import { CircleProgress } from "@/components/ui/CircleProgress";
 import { celebrate, drinkRain } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
@@ -36,6 +37,8 @@ export default function PowerHour() {
   const stateRef = useRef({ round, secsLeft, totalRounds, done });
   stateRef.current = { round, secsLeft, totalRounds, done };
 
+  const { after } = useTimeouts();
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearTick = useCallback(() => {
@@ -63,20 +66,20 @@ export default function PowerHour() {
         setRunning(false);
         setDone(true);
         sfx.win();
-        setTimeout(() => {
+        after(200, () => {
           celebrate();
           drinkRain();
-        }, 200);
+        });
       } else {
         sfx.ding();
         setShowDrink(true);
         drinkRain();
         setRound(nextRound);
         setSecsLeft(ROUND_SECONDS);
-        setTimeout(() => setShowDrink(false), 1800);
+        after(1800, () => setShowDrink(false));
       }
     }
-  }, []);
+  }, [after]);
 
   useEffect(() => {
     if (running && !done) {

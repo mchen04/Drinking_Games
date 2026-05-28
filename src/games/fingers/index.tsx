@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useState } from "react";
+import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Eye, EyeOff } from "lucide-react";
 import {
   NeonButton,
@@ -77,6 +78,8 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
   // The player who must drink (last one standing)
   const [loser, setLoser] = useState<Player | null>(null);
 
+  const { after } = useTimeouts();
+
   const guesser = remaining[guesserIdx] ?? remaining[0];
   // All players who vote this round (everyone except guesser)
   const voterList = remaining.filter((p) => p.id !== guesser.id);
@@ -112,14 +115,14 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
       const count = newVotes.filter((v) => v.inGame).length;
       setTotalIn(count);
       setPhase("reveal");
-      setTimeout(() => {
+      after(300, () => {
         if (count === guess) {
           sfx.ding();
           pop(0.5, 0.4);
         } else {
           sfx.buzz();
         }
-      }, 300);
+      });
     } else {
       setVoterStep(nextStep);
       setChoiceMade(false);

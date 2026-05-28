@@ -11,6 +11,7 @@ import {
   RequirePlayers,
 } from "@/components/ui";
 import { CircleProgress } from "@/components/ui/CircleProgress";
+import { useTimeouts } from "@/lib/timers";
 import { sfx } from "@/lib/sound";
 import { drinkRain, pop } from "@/lib/confetti";
 import { pickRandom } from "@/lib/random";
@@ -56,6 +57,8 @@ function Game({ players }: { players: Player[] }) {
   const [penalty, setPenalty] = useState<Penalty | null>(null);
   const [penaltyKey, setPenaltyKey] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+
+  const { after } = useTimeouts();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -181,10 +184,10 @@ function Game({ players }: { players: Player[] }) {
     setInput("");
 
     // Brief pause so the chain update animates before advancing.
-    setTimeout(() => {
+    after(300, () => {
       setSubmitted(false);
       setTurnIdx((i) => i + 1);
-    }, 300);
+    });
   }
 
   function handleReset() {

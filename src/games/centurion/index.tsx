@@ -8,6 +8,7 @@ import { CircleProgress } from "@/components/ui/CircleProgress";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
 import { cn } from "@/lib/cn";
+import { useTimeouts } from "@/lib/timers";
 
 const ACCENT = "#9d4edd";
 
@@ -17,6 +18,7 @@ type Target = (typeof TARGET_OPTIONS)[number];
 type Phase = "idle" | "running" | "paused" | "done";
 
 export default function Centurion() {
+  const { after } = useTimeouts();
   const [target, setTarget] = useState<Target>(100);
   const [phase, setPhase] = useState<Phase>("idle");
   const [shot, setShot] = useState(0);
@@ -52,17 +54,17 @@ export default function Centurion() {
       setElapsed(0);
       setFlash(true);
       void shotControls.start({ scale: [1, 1.4, 1], transition: { duration: 0.35 } });
-      setTimeout(() => setFlash(false), 900);
+      after(900, () => setFlash(false));
       if (n >= t) {
         setPhase("done");
         clearTick();
-        setTimeout(() => {
+        after(200, () => {
           celebrate();
           sfx.win();
-        }, 200);
+        });
       }
     },
-    [shotControls, clearTick],
+    [shotControls, clearTick, after],
   );
 
   // Keep a latest-ref to completeShotN so the interval callback always calls
