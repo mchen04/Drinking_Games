@@ -58,13 +58,19 @@ function Game({ players }: { players: Player[] }) {
 
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Track the current turn index in a ref so that handleTimeout always reads
+  // the correct player even when called from inside a stale setInterval closure.
+  const turnIdxRef = useRef(turnIdx);
 
   const currentPlayer = players[turnIdx % players.length];
   const requiredLetter = lastAlpha(chain[chain.length - 1]);
 
   /** Restart the countdown for the current turn. */
   function resetTimer() {
-    if (timerRef.current !== null) clearInterval(timerRef.current);
+    if (timerRef.current !== null) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
     setTimeLeft(TURN_SECONDS);
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
@@ -80,12 +86,18 @@ function Game({ players }: { players: Player[] }) {
     }, 1000);
   }
 
+  // Keep the ref in sync with state on every render.
+  turnIdxRef.current = turnIdx;
+
   // Start timer on mount and whenever the turn advances.
   useEffect(() => {
     resetTimer();
     inputRef.current?.focus();
     return () => {
-      if (timerRef.current !== null) clearInterval(timerRef.current);
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turnIdx]);
@@ -93,12 +105,16 @@ function Game({ players }: { players: Player[] }) {
   function handleTimeout() {
     sfx.buzz();
     drinkRain();
+    // Read the current turn index from the ref (not the stale closure) so that
+    // the correct player is penalised even if the render has drifted.
+    const timedOutIdx = turnIdxRef.current;
+    const timedOutPlayer = players[timedOutIdx % players.length];
     // Use functional updater so we always read the latest penaltyKey even
     // when called from inside a stale setInterval closure.
     setPenaltyKey((k) => {
       const key = k + 1;
       setPenalty({
-        playerName: currentPlayer.name,
+        playerName: timedOutPlayer.name,
         reason: "Ran out of time!",
         key,
       });

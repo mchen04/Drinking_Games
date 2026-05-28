@@ -12,7 +12,8 @@ const MUTE_KEY = "pd:" + "muted";
 function getCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!ctx) {
-    const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const w = window as typeof window & { webkitAudioContext?: typeof AudioContext };
+    const AC = w.AudioContext || w.webkitAudioContext;
     if (!AC) return null;
     ctx = new AC();
   }

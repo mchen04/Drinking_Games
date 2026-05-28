@@ -36,13 +36,21 @@ interface SecretVote {
 
 /* ─── helpers ─── */
 
-function nextGuesserIndex(
-  remaining: Player[],
-  currentGuesserId: string,
+/**
+ * After eliminating the player at `eliminatedIdx` from a list of `remainingCount`
+ * players, return the correct index for the next guesser in the new (filtered) list.
+ *
+ * If the eliminated player was not the last in the list, the player who was
+ * immediately after them slides into their slot — so the new index is the same
+ * as the old one (clamped to the new length). If the eliminated player *was* the
+ * last entry, wrap back to 0.
+ */
+function nextGuesserAfterElimination(
+  eliminatedIdx: number,
+  newRemainingLength: number,
 ): number {
-  const idx = remaining.findIndex((p) => p.id === currentGuesserId);
-  // rotate to the next player after the current guesser
-  return (idx + 1) % remaining.length;
+  if (newRemainingLength === 0) return 0;
+  return eliminatedIdx % newRemainingLength;
 }
 
 /* ─── main game ─── */
@@ -136,8 +144,9 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
         return;
       }
 
-      // Next guesser is whoever comes after the eliminated guesser in the new list
-      const newIdx = nextGuesserIndex(newRemaining, guesser.id) % newRemaining.length;
+      // Next guesser is whoever comes after the eliminated guesser in the new list.
+      // Use the pre-filter index (guesserIdx) so the lookup never returns -1.
+      const newIdx = nextGuesserAfterElimination(guesserIdx, newRemaining.length);
       setRemaining(newRemaining);
       setGuesserIdx(newIdx);
     } else {

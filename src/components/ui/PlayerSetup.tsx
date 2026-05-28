@@ -57,6 +57,7 @@ export function PlayerSetup({
           {players.map((p) => (
             <motion.button
               key={p.id}
+              type="button"
               layout
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}

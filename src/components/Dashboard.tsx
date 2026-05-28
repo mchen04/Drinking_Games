@@ -148,6 +148,7 @@ function FilterChip({
 }) {
   return (
     <motion.button
+      type="button"
       whileTap={{ scale: 0.94 }}
       onClick={onClick}
       className={cn(

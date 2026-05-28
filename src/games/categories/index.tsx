@@ -50,11 +50,19 @@ function Categories({ players }: { players: Player[] }) {
   // Countdown logic
   // -----------------------------------------------------------------------
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const delayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
+    }
+  }, []);
+
+  const clearDelay = useCallback(() => {
+    if (delayRef.current !== null) {
+      clearTimeout(delayRef.current);
+      delayRef.current = null;
     }
   }, []);
 
@@ -86,8 +94,11 @@ function Categories({ players }: { players: Player[] }) {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => clearTimer();
-  }, [clearTimer]);
+    return () => {
+      clearTimer();
+      clearDelay();
+    };
+  }, [clearTimer, clearDelay]);
 
   // -----------------------------------------------------------------------
   // Handlers
@@ -96,13 +107,15 @@ function Categories({ players }: { players: Player[] }) {
     if (!running) return;
     sfx.tick();
     clearTimer();
+    clearDelay();
     setRunning(false);
     setDrinkMsg(null);
     // advance to next player
     const next = turnIdx + 1;
     setTurnIdx(next);
     // slight delay then restart
-    setTimeout(() => {
+    delayRef.current = setTimeout(() => {
+      delayRef.current = null;
       startTimer();
     }, 300);
   }
@@ -117,13 +130,17 @@ function Categories({ players }: { players: Player[] }) {
 
   function handleNewCategory() {
     clearTimer();
+    clearDelay();
     setRunning(false);
     setDrinkMsg(null);
     sfx.whoosh();
     setCategory(dealerRef.current.next());
     setTurnIdx(0);
     // small animation delay then autostart
-    setTimeout(() => startTimer(), 350);
+    delayRef.current = setTimeout(() => {
+      delayRef.current = null;
+      startTimer();
+    }, 350);
   }
 
   function handleStart() {

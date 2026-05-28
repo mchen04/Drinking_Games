@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { createDeck, type Card } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
@@ -17,33 +17,53 @@ export default function HigherOrLower() {
   const [result, setResult] = useState<"win" | "lose" | null>(null);
   const [revealing, setRevealing] = useState(false);
 
+  const t1Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const t2Ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (t1Ref.current !== null) clearTimeout(t1Ref.current);
+      if (t2Ref.current !== null) clearTimeout(t2Ref.current);
+    };
+  }, []);
+
+  function clearTimers() {
+    if (t1Ref.current !== null) { clearTimeout(t1Ref.current); t1Ref.current = null; }
+    if (t2Ref.current !== null) { clearTimeout(t2Ref.current); t2Ref.current = null; }
+  }
+
   function ensureDeck(d: Card[]): Card[] {
     return d.length > 1 ? d : createDeck();
   }
 
   function guess(higher: boolean) {
     if (revealing) return;
+    clearTimers();
     setRevealing(true);
     sfx.flip();
     const pool = ensureDeck(deck);
     const drawn = pool[1];
     setNext(drawn);
 
-    setTimeout(() => {
+    t1Ref.current = setTimeout(() => {
+      t1Ref.current = null;
       const correct = higher ? drawn.value >= current.value : drawn.value <= current.value;
       if (correct) {
         sfx.ding();
         pop(0.5, 0.4);
-        const s = streak + 1;
-        setStreak(s);
-        setBest((b) => Math.max(b, s));
+        setStreak((s) => {
+          const next = s + 1;
+          setBest((b) => Math.max(b, next));
+          return next;
+        });
         setResult("win");
       } else {
         sfx.buzz();
         setStreak(0);
         setResult("lose");
       }
-      setTimeout(() => {
+      t2Ref.current = setTimeout(() => {
+        t2Ref.current = null;
         setCurrent(drawn);
         setDeck(pool.slice(1));
         setNext(null);

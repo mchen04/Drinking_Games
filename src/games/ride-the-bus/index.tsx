@@ -7,11 +7,10 @@ import { createDeck, type Card, type Suit, isRed } from "@/lib/deck";
 import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
-import { cn } from "@/lib/cn";
+import { PhaseButtons, type Phase } from "./PhaseButtons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Phase = "q1" | "q2" | "q3" | "q4" | "summary";
 type Outcome = "correct" | "wrong" | null;
 
 interface RoundState {
@@ -28,26 +27,39 @@ interface RoundState {
 
 const ACCENT = "#18e7ff";
 
-const PHASE_DRINKS: Record<"q1" | "q2" | "q3" | "q4", number> = {
+// Single source of truth for question phase order.
+const QUESTION_PHASES = ["q1", "q2", "q3", "q4"] as const;
+type QuestionPhase = (typeof QUESTION_PHASES)[number];
+
+const PHASE_DRINKS: Record<QuestionPhase, number> = {
   q1: 1,
   q2: 2,
   q3: 3,
   q4: 4,
 };
 
-const PHASE_LABELS: Record<"q1" | "q2" | "q3" | "q4", string> = {
+const PHASE_LABELS: Record<QuestionPhase, string> = {
   q1: "Q1 — Red or Black?",
   q2: "Q2 — Higher or Lower?",
   q3: "Q3 — Inside or Outside?",
   q4: "Q4 — Guess the Suit?",
 };
 
-const SUIT_LABELS: { suit: Suit; label: string; color: string }[] = [
-  { suit: "♠", label: "Spades ♠", color: "#9d4edd" },
-  { suit: "♥", label: "Hearts ♥", color: "#ff2d95" },
-  { suit: "♦", label: "Diamonds ♦", color: "#ff5e5b" },
-  { suit: "♣", label: "Clubs ♣", color: "#2de2c0" },
-];
+// ─── Phase helpers (all derived from QUESTION_PHASES) ─────────────────────────
+
+function phaseToIndex(phase: Phase): number {
+  const idx = QUESTION_PHASES.indexOf(phase as QuestionPhase);
+  return idx === -1 ? QUESTION_PHASES.length : idx; // summary → 4
+}
+
+function nextPhase(phase: QuestionPhase): Phase {
+  const idx = QUESTION_PHASES.indexOf(phase);
+  return idx < QUESTION_PHASES.length - 1 ? QUESTION_PHASES[idx + 1] : "summary";
+}
+
+function isQuestionPhase(phase: Phase): phase is QuestionPhase {
+  return phase !== "summary";
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -61,14 +73,6 @@ function initialState(): RoundState {
     drinksThisRound: 0,
     revealing: false,
   };
-}
-
-function cardIndex(phase: Phase): number {
-  return phase === "q1" ? 0 : phase === "q2" ? 1 : phase === "q3" ? 2 : 3;
-}
-
-function nextPhase(phase: "q1" | "q2" | "q3" | "q4"): Phase {
-  return phase === "q1" ? "q2" : phase === "q2" ? "q3" : phase === "q3" ? "q4" : "summary";
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -93,11 +97,11 @@ export default function RideTheBus() {
 
   // Shared resolve: sets outcome, plays sfx/fx, then after delay advances phase.
   const resolve = useCallback(
-    (correct: boolean, phase: "q1" | "q2" | "q3" | "q4", drawnCard: Card, updatedDeck: Card[]) => {
-      const idx = cardIndex(phase);
+    (correct: boolean, qPhase: QuestionPhase, drawnCard: Card, updatedDeck: Card[]) => {
+      const idx = phaseToIndex(qPhase);
       const newCards = [...cards] as RoundState["cards"];
       newCards[idx] = drawnCard;
-      const drinks = correct ? 0 : PHASE_DRINKS[phase];
+      const drinks = correct ? 0 : PHASE_DRINKS[qPhase];
       const newTotal = totalDrinks + drinks;
       const newThisRound = drinksThisRound + drinks;
 
@@ -125,7 +129,7 @@ export default function RideTheBus() {
         if (cancelToken.current !== token) return;
         setState((prev) => ({
           ...prev,
-          phase: nextPhase(phase),
+          phase: nextPhase(qPhase),
           outcome: null,
           revealing: false,
         }));
@@ -144,19 +148,19 @@ export default function RideTheBus() {
   }
 
   // ── Q2: Higher or Lower (ties = loss) ────────────────────────────────────
-  function guessHigher(guessHigher: boolean) {
+  function guessHigher(higher: boolean) {
     if (phase !== "q2") return;
     const card1 = cards[0];
     if (!card1) return;
     drawCard((drawn, rest) => {
       // exact tie = loss
-      const correct = guessHigher ? drawn.value > card1.value : drawn.value < card1.value;
+      const correct = higher ? drawn.value > card1.value : drawn.value < card1.value;
       resolve(correct, "q2", drawn, rest);
     });
   }
 
   // ── Q3: Inside or Outside (boundary = loss) ───────────────────────────────
-  function guessInside(guessInside: boolean) {
+  function guessInside(inside: boolean) {
     if (phase !== "q3") return;
     const card1 = cards[0];
     const card2 = cards[1];
@@ -167,7 +171,7 @@ export default function RideTheBus() {
       // boundary (equal to lo or hi) = loss
       const isInsideStrict = drawn.value > lo && drawn.value < hi;
       const isOutsideStrict = drawn.value < lo || drawn.value > hi;
-      const correct = guessInside ? isInsideStrict : isOutsideStrict;
+      const correct = inside ? isInsideStrict : isOutsideStrict;
       resolve(correct, "q3", drawn, rest);
     });
   }
@@ -189,10 +193,7 @@ export default function RideTheBus() {
   }
 
   // ── Derived ──────────────────────────────────────────────────────────────
-  const isActivePhase = (p: Phase): p is "q1" | "q2" | "q3" | "q4" =>
-    p !== "summary";
-
-  const phaseIndex = phase === "q1" ? 0 : phase === "q2" ? 1 : phase === "q3" ? 2 : phase === "q4" ? 3 : 4;
+  const phaseIndex = phaseToIndex(phase);
 
   return (
     <div className="flex flex-col items-center">
@@ -205,7 +206,7 @@ export default function RideTheBus() {
       {/* Progress dots */}
       {phase !== "summary" && (
         <div className="flex gap-2 mb-6">
-          {(["q1", "q2", "q3", "q4"] as const).map((p, i) => (
+          {QUESTION_PHASES.map((p, i) => (
             <motion.div
               key={p}
               animate={{
@@ -282,7 +283,7 @@ export default function RideTheBus() {
           >
             {/* Phase label */}
             <p className="text-white/60 text-sm mb-4 font-semibold tracking-wide uppercase">
-              {isActivePhase(phase) ? PHASE_LABELS[phase] : ""}
+              {isQuestionPhase(phase) ? PHASE_LABELS[phase] : ""}
             </p>
 
             {/* Context hint */}
@@ -294,7 +295,7 @@ export default function RideTheBus() {
                 {outcome === "wrong" && (
                   <DrinkCallout
                     key="drink"
-                    text={`Drink ${isActivePhase(phase) ? PHASE_DRINKS[phase] : ""}!`}
+                    text={`Drink ${isQuestionPhase(phase) ? PHASE_DRINKS[phase] : ""}!`}
                     accent="#ff5e5b"
                   />
                 )}
@@ -400,119 +401,6 @@ function ContextHint({
       </p>
     );
   }
-  return null;
-}
-
-interface PhaseButtonsProps {
-  phase: Phase;
-  revealing: boolean;
-  onGuessColor: (red: boolean) => void;
-  onGuessHigher: (higher: boolean) => void;
-  onGuessInside: (inside: boolean) => void;
-  onGuessSuit: (suit: Suit) => void;
-}
-
-function PhaseButtons({
-  phase,
-  revealing,
-  onGuessColor,
-  onGuessHigher,
-  onGuessInside,
-  onGuessSuit,
-}: PhaseButtonsProps) {
-  if (phase === "q1") {
-    return (
-      <div className="flex gap-3">
-        <NeonButton
-          onClick={() => onGuessColor(true)}
-          size="lg"
-          variant="danger"
-          disabled={revealing}
-        >
-          ♥ Red
-        </NeonButton>
-        <NeonButton
-          onClick={() => onGuessColor(false)}
-          size="lg"
-          variant="ghost"
-          disabled={revealing}
-        >
-          ♠ Black
-        </NeonButton>
-      </div>
-    );
-  }
-
-  if (phase === "q2") {
-    return (
-      <div className="flex gap-3">
-        <NeonButton
-          onClick={() => onGuessHigher(true)}
-          size="lg"
-          variant="success"
-          disabled={revealing}
-        >
-          ↑ Higher
-        </NeonButton>
-        <NeonButton
-          onClick={() => onGuessHigher(false)}
-          size="lg"
-          variant="danger"
-          disabled={revealing}
-        >
-          ↓ Lower
-        </NeonButton>
-      </div>
-    );
-  }
-
-  if (phase === "q3") {
-    return (
-      <div className="flex gap-3">
-        <NeonButton
-          onClick={() => onGuessInside(true)}
-          size="lg"
-          variant="success"
-          disabled={revealing}
-        >
-          ← Inside →
-        </NeonButton>
-        <NeonButton
-          onClick={() => onGuessInside(false)}
-          size="lg"
-          variant="danger"
-          disabled={revealing}
-        >
-          ↔ Outside
-        </NeonButton>
-      </div>
-    );
-  }
-
-  if (phase === "q4") {
-    return (
-      <div className="grid grid-cols-2 gap-2 w-full">
-        {SUIT_LABELS.map(({ suit, label, color }) => (
-          <motion.button
-            key={suit}
-            disabled={revealing}
-            whileHover={{ scale: revealing ? 1 : 1.04, y: revealing ? 0 : -2 }}
-            whileTap={{ scale: revealing ? 1 : 0.96 }}
-            onClick={() => onGuessSuit(suit)}
-            className={cn(
-              "glass rounded-2xl px-4 py-3 text-base font-semibold border border-white/10",
-              "transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
-              "hover:border-white/30",
-            )}
-            style={{ color, boxShadow: `0 0 18px -8px ${color}` }}
-          >
-            {label}
-          </motion.button>
-        ))}
-      </div>
-    );
-  }
-
   return null;
 }
 

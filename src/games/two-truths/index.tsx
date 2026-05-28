@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Lightbulb, RotateCcw } from "lucide-react";
 import { DrinkCallout, GameHeading, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
 import type { Player } from "@/store/players";
@@ -30,28 +30,18 @@ function TwoTruths({ players }: { players: Player[] }) {
   // Timer state
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const currentPlayer = players[turnIndex % players.length];
 
-  // Clean up interval on unmount
+  // Drive the interval from an effect keyed on timerActive + turnIndex so React
+  // owns the full lifecycle: the previous interval is always cleared before a new
+  // one starts, and it's cleared on unmount or when the turn advances.
   useEffect(() => {
-    return () => {
-      if (intervalRef.current !== null) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+    if (!timerActive) return;
 
-  function startTimer() {
-    if (timerActive) return;
-    setTimeLeft(TIMER_SECONDS);
-    setTimerActive(true);
-    sfx.click();
-    intervalRef.current = setInterval(() => {
+    const id = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          if (intervalRef.current !== null) clearInterval(intervalRef.current);
           setTimerActive(false);
           sfx.buzz();
           return 0;
@@ -60,10 +50,20 @@ function TwoTruths({ players }: { players: Player[] }) {
         return t - 1;
       });
     }, 1000);
+
+    return () => {
+      clearInterval(id);
+    };
+  }, [timerActive, turnIndex]);
+
+  function startTimer() {
+    if (timerActive) return;
+    setTimeLeft(TIMER_SECONDS);
+    setTimerActive(true);
+    sfx.click();
   }
 
   function resetTimer() {
-    if (intervalRef.current !== null) clearInterval(intervalRef.current);
     setTimerActive(false);
     setTimeLeft(TIMER_SECONDS);
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { RotateCcw, Trophy } from "lucide-react";
 import { NeonButton, GameHeading } from "@/components/ui";
 import { sfx } from "@/lib/sound";
@@ -34,13 +34,15 @@ interface TeamRackProps {
   name: string;
   onNameChange: (n: string) => void;
   cups: boolean[];
+  /** Indices that have been tapped but whose exit animation is still running */
+  pendingTaps: ReadonlySet<number>;
   onCupTap: (index: number) => void;
   accent: string;
   disabled: boolean;
   remaining: number;
 }
 
-function TeamRack({ name, onNameChange, cups, onCupTap, accent, disabled, remaining }: TeamRackProps) {
+function TeamRack({ name, onNameChange, cups, pendingTaps, onCupTap, accent, disabled, remaining }: TeamRackProps) {
   return (
     <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
       {/* Editable team name */}
@@ -85,23 +87,23 @@ function TeamRack({ name, onNameChange, cups, onCupTap, accent, disabled, remain
                         initial={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.1, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 360, damping: 22 }}
-                        onClick={() => !disabled && onCupTap(cupIdx)}
-                        disabled={disabled}
+                        onClick={() => onCupTap(cupIdx)}
+                        disabled={disabled || pendingTaps.has(cupIdx)}
                         aria-label={`Cup ${cupIdx + 1}`}
                         className={cn(
                           "w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center",
                           "transition-shadow select-none",
-                          disabled
+                          disabled || pendingTaps.has(cupIdx)
                             ? "cursor-default opacity-50"
                             : "cursor-pointer hover:scale-110 active:scale-95",
                         )}
                         style={{
                           borderColor: accent,
                           background: `radial-gradient(circle at 35% 35%, ${accent}55, ${accent}18)`,
-                          boxShadow: disabled ? "none" : `0 0 12px -3px ${accent}`,
+                          boxShadow: disabled || pendingTaps.has(cupIdx) ? "none" : `0 0 12px -3px ${accent}`,
                         }}
-                        whileHover={disabled ? undefined : { scale: 1.12 }}
-                        whileTap={disabled ? undefined : { scale: 0.9 }}
+                        whileHover={disabled || pendingTaps.has(cupIdx) ? undefined : { scale: 1.12 }}
+                        whileTap={disabled || pendingTaps.has(cupIdx) ? undefined : { scale: 0.9 }}
                       >
                         <span className="text-lg">🍺</span>
                       </motion.button>
@@ -169,38 +171,68 @@ export default function BeerPong() {
   const [teamNames, setTeamNames] = useState<[string, string]>(["Team A", "Team B"]);
   const [cups, setCups] = useState<[boolean[], boolean[]]>([makeCups(), makeCups()]);
   const [winner, setWinner] = useState<string | null>(null);
+  // Track cups tapped-but-not-yet-removed (exit animation in flight) to prevent double-fire
+  const [pendingTaps, setPendingTaps] = useState<[Set<number>, Set<number>]>([new Set(), new Set()]);
+
+  // Stable ref so the functional setCups updater can read the latest team name without
+  // the teamNames value being captured in a stale closure.
+  const teamNamesRef = useRef(teamNames);
+  teamNamesRef.current = teamNames;
+
+  const winnerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const remaining = cups.map((teamCups) => teamCups.filter((s) => !s).length) as [number, number];
 
   const handleCupTap = useCallback(
     (teamIdx: 0 | 1, cupIdx: number) => {
       if (winner) return;
-      if (cups[teamIdx][cupIdx]) return; // already sunk
+
+      // Guard against double-fire: cup already sunk or exit-animation in flight
+      setPendingTaps((prevPending) => {
+        if (prevPending[teamIdx].has(cupIdx)) return prevPending; // already pending — no-op
+        const next = [new Set(prevPending[0]), new Set(prevPending[1])] as [Set<number>, Set<number>];
+        next[teamIdx].add(cupIdx);
+        return next;
+      });
 
       sfx.ding();
 
       setCups((prev) => {
+        // If already sunk in state, bail out (safety net for concurrent React batches)
+        if (prev[teamIdx][cupIdx]) return prev;
+
         const next = prev.map((arr) => [...arr]) as [boolean[], boolean[]];
         next[teamIdx][cupIdx] = true;
+
+        // Win check computed from next state — no stale-closure risk
+        const newRemaining = next[teamIdx].filter((s) => !s).length;
+        if (newRemaining <= 0) {
+          const winningTeam = teamNamesRef.current[teamIdx];
+          // Clear any existing timer before scheduling a new one
+          if (winnerTimerRef.current !== null) {
+            clearTimeout(winnerTimerRef.current);
+          }
+          winnerTimerRef.current = setTimeout(() => {
+            winnerTimerRef.current = null;
+            celebrate();
+            sfx.win();
+            setWinner(winningTeam);
+          }, 350);
+        }
+
         return next;
       });
-
-      // Check win: count remaining cups after this sink
-      const newRemaining = cups[teamIdx].filter((s) => !s).length - 1;
-      if (newRemaining <= 0) {
-        const winningTeam = teamNames[teamIdx];
-        setTimeout(() => {
-          celebrate();
-          sfx.win();
-          setWinner(winningTeam);
-        }, 350);
-      }
     },
-    [cups, winner, teamNames],
+    [winner],
   );
 
   function handleRematch() {
+    if (winnerTimerRef.current !== null) {
+      clearTimeout(winnerTimerRef.current);
+      winnerTimerRef.current = null;
+    }
     setCups([makeCups(), makeCups()]);
+    setPendingTaps([new Set(), new Set()]);
     setWinner(null);
     sfx.click();
   }
@@ -263,6 +295,7 @@ export default function BeerPong() {
                     name={teamNames[teamIdx]}
                     onNameChange={(n) => handleNameChange(teamIdx, n)}
                     cups={cups[teamIdx]}
+                    pendingTaps={pendingTaps[teamIdx]}
                     onCupTap={(ci) => handleCupTap(teamIdx, ci)}
                     accent={ACCENT}
                     disabled={!!winner}

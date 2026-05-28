@@ -74,15 +74,12 @@ function GlassIcon({
 
   return (
     <motion.button
-      key={`glass-${index}-${state}`}
       variants={shakeVariants}
       animate={variant}
       onClick={handleClick}
       disabled={!active || state !== "hidden"}
       whileHover={active && state === "hidden" ? { scale: 1.12 } : {}}
       whileTap={active && state === "hidden" ? { scale: 0.94 } : {}}
-      initial={{ opacity: 0, y: 20 }}
-      exit={{ opacity: 0, scale: 0.8 }}
       className="relative flex flex-col items-center gap-1 focus:outline-none"
       style={{ cursor: active && state === "hidden" ? "pointer" : "default" }}
       aria-label={`Glass ${index + 1}`}

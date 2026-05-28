@@ -37,6 +37,17 @@ function MedusaGame({ players }: { players: Player[] }) {
   }, []);
 
   function startCountdown() {
+    // Clear any in-flight interval/timeout before starting a new one so that
+    // a double-tap cannot spawn multiple concurrent intervals.
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
     sfx.whoosh();
     setCount(3);
     setPhase("countdown");
@@ -47,8 +58,10 @@ function MedusaGame({ players }: { players: Player[] }) {
       c -= 1;
       setCount(c);
       if (c <= 0) {
-        if (intervalRef.current) clearInterval(intervalRef.current);
+        clearInterval(intervalRef.current!);
+        intervalRef.current = null;
         timeoutRef.current = setTimeout(() => {
+          timeoutRef.current = null;
           sfx.ding();
           setPhase("reveal");
         }, 180);

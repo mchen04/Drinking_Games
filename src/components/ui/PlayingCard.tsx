@@ -10,6 +10,8 @@ const SIZES = {
   lg: "w-36 h-52 text-4xl rounded-2xl",
 } as const;
 
+const ROUNDED = { sm: "rounded-lg", md: "rounded-xl", lg: "rounded-2xl" } as const;
+
 export interface PlayingCardProps {
   card?: Card | null;
   faceDown?: boolean;
@@ -45,7 +47,7 @@ export function PlayingCard({
         <div
           className={cn(
             "absolute inset-0 flex flex-col justify-between p-2 bg-white",
-            SIZES[size].split(" ").find((c) => c.startsWith("rounded")),
+            ROUNDED[size],
           )}
           style={{
             backfaceVisibility: "hidden",
@@ -84,7 +86,7 @@ export function PlayingCard({
         <div
           className={cn(
             "absolute inset-0 flex items-center justify-center overflow-hidden",
-            SIZES[size].split(" ").find((c) => c.startsWith("rounded")),
+            ROUNDED[size],
           )}
           style={{
             backfaceVisibility: "hidden",

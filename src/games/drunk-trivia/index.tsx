@@ -1,14 +1,13 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout, PlayerChip } from "@/components/ui";
 import { usePlayers } from "@/store/players";
 import { shuffle } from "@/lib/random";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
-import { cn } from "@/lib/cn";
 import { QUESTIONS, type TriviaQuestion } from "./data";
 
 const ACCENT = "#6c5ce7";
@@ -55,14 +54,7 @@ export default function DrunkTrivia() {
   // Player rotation
   const [turn, setTurn] = useState(0);
 
-  // Timeout ref for cleanup
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const currentView = useMemo<QuestionView>(() => {
-    if (queueIndex < queue.length) return queue[queueIndex];
-    // Rebuild when exhausted (seamless cycle)
-    return buildQueue()[0];
-  }, [queue, queueIndex]);
+  const currentView: QuestionView = queue[queueIndex];
 
   const currentPlayer = hasPlayers ? players[turn % players.length] : null;
 
@@ -87,7 +79,6 @@ export default function DrunkTrivia() {
   }
 
   function handleNext() {
-    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     setPicked(null);
     setAnswerState("idle");
 
@@ -106,7 +97,6 @@ export default function DrunkTrivia() {
   }
 
   function handleReset() {
-    if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     setQueue(buildQueue());
     setQueueIndex(0);
     setScore(0);
@@ -228,12 +218,11 @@ export default function DrunkTrivia() {
                   disabled={answerState !== "idle"}
                   sound={answerState === "idle"}
                   onClick={() => handlePick(i)}
-                  className={cn(
-                    "text-left justify-start",
+                  className={
                     answerState !== "idle" && i !== currentView.answer && i !== picked
-                      ? "opacity-30"
-                      : "",
-                  )}
+                      ? "text-left justify-start opacity-30"
+                      : "text-left justify-start"
+                  }
                 >
                   <span className="mr-2 opacity-50 font-mono text-sm">
                     {String.fromCharCode(65 + i)}.

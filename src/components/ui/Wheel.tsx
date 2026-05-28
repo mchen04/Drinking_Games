@@ -16,8 +16,6 @@ export interface WheelProps {
   onResult?: (index: number, segment: WheelSegment) => void;
   size?: number;
   className?: string;
-  /** disable the built-in spin button (drive externally via ref not needed) */
-  spinning?: boolean;
 }
 
 /**

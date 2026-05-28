@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { GlassCard, NeonButton, RequirePlayers, GameHeading, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
@@ -57,6 +57,18 @@ function computeOutcome(
 
 function Game({ players }: { players: Player[] }) {
   const dealer = useRef(createDealer(DILEMMAS));
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealInFlightRef = useRef(false);
+
+  // Clear the reveal timer on unmount.
+  useEffect(() => {
+    return () => {
+      if (revealTimerRef.current !== null) {
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const [round, setRound] = useState<RoundState>(() => ({
     dilemma: dealer.current.next(),
@@ -84,13 +96,22 @@ function Game({ players }: { players: Player[] }) {
   }
 
   function reveal() {
-    if (!allVoted || round.revealed) return;
+    if (!allVoted || round.revealed || revealInFlightRef.current) return;
+    revealInFlightRef.current = true;
     sfx.ding();
     const splitA = randInt(28, 72);
+    // Compute outcome synchronously from current votes before any state update,
+    // so the closure inside setTimeout always references the correct dilemma's data.
+    const out = computeOutcome(round.votes, players);
     setRound((prev) => ({ ...prev, revealed: true, splitA }));
-    // Small delay so reveal animation can start before confetti
-    setTimeout(() => {
-      const out = computeOutcome(round.votes, players);
+    // Clear any stale timer before starting a new one.
+    if (revealTimerRef.current !== null) {
+      clearTimeout(revealTimerRef.current);
+    }
+    // Small delay so reveal animation can start before confetti.
+    revealTimerRef.current = setTimeout(() => {
+      revealTimerRef.current = null;
+      revealInFlightRef.current = false;
       if (out.majority === "tie") {
         drinkRain();
       } else {
@@ -100,6 +121,12 @@ function Game({ players }: { players: Player[] }) {
   }
 
   function nextDilemma() {
+    // Cancel any pending reveal confetti for the old dilemma.
+    if (revealTimerRef.current !== null) {
+      clearTimeout(revealTimerRef.current);
+      revealTimerRef.current = null;
+    }
+    revealInFlightRef.current = false;
     sfx.whoosh();
     setRound({
       dilemma: dealer.current.next(),

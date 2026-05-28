@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { RotateCcw, Heart, Spade } from "lucide-react";
 import { createDeck, type Card, isRed } from "@/lib/deck";
 import {
@@ -35,6 +35,22 @@ export default function RedOrBlack() {
   const hasPlayers = players.length > 0;
   const currentPlayer = hasPlayers ? players[turnIndex % players.length] : null;
 
+  const outerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const innerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (outerTimerRef.current !== null) {
+        clearTimeout(outerTimerRef.current);
+        outerTimerRef.current = null;
+      }
+      if (innerTimerRef.current !== null) {
+        clearTimeout(innerTimerRef.current);
+        innerTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const guess = useCallback(
     (guessRed: boolean) => {
       if (revealing) return;
@@ -46,16 +62,22 @@ export default function RedOrBlack() {
 
       setRevealed(drawn);
 
-      setTimeout(() => {
+      if (outerTimerRef.current !== null) {
+        clearTimeout(outerTimerRef.current);
+      }
+      outerTimerRef.current = setTimeout(() => {
+        outerTimerRef.current = null;
         const cardIsRed = isRed(drawn.suit);
         const correct = guessRed === cardIsRed;
 
         if (correct) {
           sfx.ding();
           pop(0.5, 0.4);
-          const next = streak + 1;
-          setStreak(next);
-          setBest((b) => Math.max(b, next));
+          setStreak((prev) => {
+            const next = prev + 1;
+            setBest((b) => Math.max(b, next));
+            return next;
+          });
           setResult("correct");
         } else {
           sfx.buzz();
@@ -65,7 +87,11 @@ export default function RedOrBlack() {
 
         setDeck(rest.length > 0 ? rest : createDeck());
 
-        setTimeout(() => {
+        if (innerTimerRef.current !== null) {
+          clearTimeout(innerTimerRef.current);
+        }
+        innerTimerRef.current = setTimeout(() => {
+          innerTimerRef.current = null;
           setResult(null);
           setRevealing(false);
           if (hasPlayers) {
@@ -74,7 +100,7 @@ export default function RedOrBlack() {
         }, 1200);
       }, 650);
     },
-    [revealing, deck, streak, hasPlayers],
+    [revealing, deck, hasPlayers],
   );
 
   function reset() {

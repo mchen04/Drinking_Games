@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 
 // deterministic bubble field (no Math.random → no hydration mismatch)
 const BUBBLES = Array.from({ length: 18 }).map((_, i) => ({
+  id: i,
   left: (i * 53) % 100,
   size: 6 + ((i * 13) % 22),
   delay: (i % 9) * 0.8,
@@ -36,9 +37,9 @@ export function NeonBackground({ accent }: { accent?: string }) {
       />
 
       {/* rising bubbles */}
-      {BUBBLES.map((b, i) => (
+      {BUBBLES.map((b) => (
         <span
-          key={i}
+          key={b.id}
           className="absolute bottom-0 rounded-full opacity-40"
           style={{
             left: `${b.left}%`,

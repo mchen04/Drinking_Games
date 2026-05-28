@@ -48,12 +48,25 @@ export default function BusDriver() {
   const [busy, setBusy] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const winTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Keep a live ref to attempts so timer callbacks never read a stale closure.
+  const attemptsRef = useRef(1);
+
+  // Keep attemptsRef in sync so timer callbacks always see the latest value.
+  useEffect(() => {
+    attemptsRef.current = attempts;
+  }, [attempts]);
 
   // Clean up any pending timers on unmount.
   useEffect(() => {
     return () => {
-      if (timerRef.current !== null) clearTimeout(timerRef.current);
-      if (winTimerRef.current !== null) clearTimeout(winTimerRef.current);
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      if (winTimerRef.current !== null) {
+        clearTimeout(winTimerRef.current);
+        winTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -93,9 +106,15 @@ export default function BusDriver() {
       setPenaltyDrinks(drinks);
       setPhase("penalty");
       sfx.buzz();
-      // After showing penalty, reset after a delay
+      // After showing penalty, reset after a delay.
+      // Clear any stale timer before starting a new one.
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
       timerRef.current = setTimeout(() => {
-        resetRun(attempts + 1);
+        timerRef.current = null;
+        resetRun(attemptsRef.current + 1);
       }, 2600);
     } else {
       // Safe — green glow, advance
@@ -112,7 +131,12 @@ export default function BusDriver() {
       if (nextFlipped === ROW_SIZE) {
         // All 8 cleared — WIN!
         setPhase("won");
+        if (winTimerRef.current !== null) {
+          clearTimeout(winTimerRef.current);
+          winTimerRef.current = null;
+        }
         winTimerRef.current = setTimeout(() => {
+          winTimerRef.current = null;
           celebrate();
           sfx.win();
         }, 300);

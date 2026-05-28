@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { RotateCcw } from "lucide-react";
 import { NeonButton, GameHeading, DrinkCallout, PlayerChip, RequirePlayers } from "@/components/ui";
 import { usePlayers, type Player } from "@/store/players";
@@ -39,24 +39,30 @@ function GameBoard({ players }: { players: Player[] }) {
   const [turnIndex, setTurnIndex] = useState(0);
   const [showDrink, setShowDrink] = useState(false);
 
-  // Keyed so useMemo re-creates dealers on explicit reset
-  const [dealerKey, setDealerKey] = useState(0);
-  const dealers = useMemo<Dealers>(() => makeDealers(), [dealerKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dealersRef = useRef<Dealers>(makeDealers());
+
+  const chickenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (chickenTimerRef.current !== null) {
+        clearTimeout(chickenTimerRef.current);
+        chickenTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const currentPlayer: Player | null =
     hasPlayers ? players[turnIndex % players.length] : null;
 
-  const pick = useCallback(
-    (type: PickType) => {
-      sfx.whoosh();
-      const item = (type === "truth" ? dealers.truth : dealers.dare).next();
-      setPickType(type);
-      setPrompt(item);
-      setShowDrink(false);
-      setPhase("reveal");
-    },
-    [dealers],
-  );
+  const pick = useCallback((type: PickType) => {
+    sfx.whoosh();
+    const item = (type === "truth" ? dealersRef.current.truth : dealersRef.current.dare).next();
+    setPickType(type);
+    setPrompt(item);
+    setShowDrink(false);
+    setPhase("reveal");
+  }, []);
 
   function advance() {
     if (hasPlayers) setTurnIndex((t) => t + 1);
@@ -73,17 +79,20 @@ function GameBoard({ players }: { players: Player[] }) {
     sfx.buzz();
     drinkRain();
     setShowDrink(true);
-    const timer = setTimeout(() => {
+    if (chickenTimerRef.current !== null) {
+      clearTimeout(chickenTimerRef.current);
+    }
+    chickenTimerRef.current = setTimeout(() => {
+      chickenTimerRef.current = null;
       setShowDrink(false);
       setPhase("pick");
       if (hasPlayers) setTurnIndex((t) => t + 1);
     }, 2200);
-    return () => clearTimeout(timer);
   }
 
   function resetGame() {
     sfx.click();
-    setDealerKey((k) => k + 1);
+    dealersRef.current = makeDealers();
     setPhase("pick");
     setTurnIndex(0);
     setShowDrink(false);

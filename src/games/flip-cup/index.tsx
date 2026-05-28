@@ -8,8 +8,11 @@ import type { Player } from "@/store/players";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
 import { cn } from "@/lib/cn";
+import { ACCENT as PALETTE_ACCENT } from "@/lib/palette";
 
-const ACCENT = "#2de2c0";
+const ACCENT = PALETTE_ACCENT.skill; // #2de2c0
+
+const TEAM_COLORS: [string, string] = [PALETTE_ACCENT.skill, PALETTE_ACCENT.party];
 
 export default function FlipCup() {
   return (
@@ -140,6 +143,16 @@ function Race({ players }: { players: Player[] }) {
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [showDrink, setShowDrink] = useState(false);
+  const flipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const winTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear pending flip/win timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (flipTimeoutRef.current) { clearTimeout(flipTimeoutRef.current); flipTimeoutRef.current = null; }
+      if (winTimeoutRef.current) { clearTimeout(winTimeoutRef.current); winTimeoutRef.current = null; }
+    };
+  }, []);
 
   // Timer management
   useEffect(() => {
@@ -174,7 +187,9 @@ function Race({ players }: { players: Player[] }) {
     sfx.ding();
     setFlipping((f) => teamIdx === 0 ? [cur, f[1]] : [f[0], cur]);
 
-    setTimeout(() => {
+    if (flipTimeoutRef.current) { clearTimeout(flipTimeoutRef.current); flipTimeoutRef.current = null; }
+    flipTimeoutRef.current = setTimeout(() => {
+      flipTimeoutRef.current = null;
       setFlipping((f) => teamIdx === 0 ? [null, f[1]] : [f[0], null]);
       const next = cur + 1;
       setProgress((p) => {
@@ -182,7 +197,9 @@ function Race({ players }: { players: Player[] }) {
 
         // Check win condition
         if (next >= teamSize) {
-          setTimeout(() => {
+          if (winTimeoutRef.current) { clearTimeout(winTimeoutRef.current); winTimeoutRef.current = null; }
+          winTimeoutRef.current = setTimeout(() => {
+            winTimeoutRef.current = null;
             sfx.win();
             celebrate();
             setShowDrink(true);
@@ -196,6 +213,8 @@ function Race({ players }: { players: Player[] }) {
   }
 
   function rematch() {
+    if (flipTimeoutRef.current) { clearTimeout(flipTimeoutRef.current); flipTimeoutRef.current = null; }
+    if (winTimeoutRef.current) { clearTimeout(winTimeoutRef.current); winTimeoutRef.current = null; }
     teams.current = buildTeams(players);
     setProgress([0, 0]);
     setFlipping([null, null]);
@@ -321,8 +340,8 @@ function Race({ players }: { players: Player[] }) {
 function buildTeams(players: Player[]): [Team, Team] {
   const mid = Math.ceil(players.length / 2);
   return [
-    { name: "Team 1", color: "#2de2c0", players: players.slice(0, mid) },
-    { name: "Team 2", color: "#ff2d95", players: players.slice(mid) },
+    { name: "Team 1", color: TEAM_COLORS[0], players: players.slice(0, mid) },
+    { name: "Team 2", color: TEAM_COLORS[1], players: players.slice(mid) },
   ];
 }
 

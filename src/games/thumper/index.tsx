@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Music2, RotateCcw, Info } from "lucide-react";
 import { NeonButton, RequirePlayers, GameHeading, DrinkCallout, PlayerChip } from "@/components/ui";
@@ -10,6 +10,7 @@ import { drinkRain, pop } from "@/lib/confetti";
 import { pickRandom } from "@/lib/random";
 import { cn } from "@/lib/cn";
 import { ON_BEAT_PHRASES, MISS_PHRASES, RULES_TEXT } from "./data";
+import { useThumperBeat } from "./useThumperBeat";
 
 const ACCENT = "#ff5e5b";
 const BPM_START = 60;
@@ -48,113 +49,11 @@ function ThumperGame({ players }: { players: Player[] }) {
   const [tapResult, setTapResult] = useState<TapResult | null>(null);
   const [showRules, setShowRules] = useState(false);
 
-  // Track when the last beat fired so we can measure tap offset.
-  const lastBeatRef = useRef<number | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const resultTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const tapProcessedRef = useRef(false); // prevent double-counting per beat window
 
-  const pulseControls = useAnimationControls();
-
-  const activePlayer = players[turnIdx % players.length];
-
-  // ------------------------------------------------------------
-  // Metronome tick
-  // ------------------------------------------------------------
-  const fireBeat = useCallback(() => {
-    lastBeatRef.current = performance.now();
-    tapProcessedRef.current = false;
-    sfx.tick();
-    void pulseControls.start({
-      scale: [1, 1.22, 1],
-      opacity: [0.9, 1, 0.9],
-      transition: { duration: 0.18, ease: "easeOut" },
-    });
-  }, [pulseControls]);
-
-  // Start / stop metronome based on phase
-  useEffect(() => {
-    if (phase !== "playing") {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
-
-    const intervalMs = Math.round((60 / bpm) * 1000);
-    // Fire immediately so first beat is instant
-    fireBeat();
-    intervalRef.current = setInterval(fireBeat, intervalMs);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [phase, bpm, fireBeat]);
-
-  // Cleanup result timer on unmount
-  useEffect(() => {
-    return () => {
-      if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
-    };
-  }, []);
-
-  // ------------------------------------------------------------
-  // Missed beat detector: if player hasn't tapped within 1 full
-  // beat after a beat fires, count it as a miss (only while playing).
-  // ------------------------------------------------------------
-  useEffect(() => {
-    if (phase !== "playing") return;
-
-    const intervalMs = Math.round((60 / bpm) * 1000);
-    // Check slightly after each beat whether the tap arrived
-    const missCheckTimer = setInterval(() => {
-      if (
-        phase === "playing" &&
-        lastBeatRef.current !== null &&
-        !tapProcessedRef.current
-      ) {
-        const age = performance.now() - lastBeatRef.current;
-        if (age > intervalMs * 0.85) {
-          // missed this beat
-          tapProcessedRef.current = true;
-          handleMiss();
-        }
-      }
-    }, Math.round(intervalMs * 0.9));
-
-    return () => clearInterval(missCheckTimer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, bpm]);
-
-  // ------------------------------------------------------------
-  // Handlers
-  // ------------------------------------------------------------
-  function handleTap() {
-    if (phase !== "playing") return;
-    if (tapProcessedRef.current) return; // already judged this window
-
-    const now = performance.now();
-    if (lastBeatRef.current === null) return;
-
-    const intervalMs = (60 / bpm) * 1000;
-    const tolerance = intervalMs * TOLERANCE_FRACTION;
-    const sinceBeat = now - lastBeatRef.current;
-
-    // "On beat" if tap is within tolerance after a beat fires
-    if (sinceBeat <= tolerance) {
-      tapProcessedRef.current = true;
-      handleHit();
-    } else {
-      // Early tap — too soon before next beat
-      tapProcessedRef.current = true;
-      handleMiss();
-    }
-  }
-
+  // ----------------------------------------------------------------
+  // Handlers — defined before the hook so handleMiss can be passed in
+  // ----------------------------------------------------------------
   function handleHit() {
     sfx.ding();
     pop(0.5, 0.5);
@@ -176,10 +75,11 @@ function ThumperGame({ players }: { players: Player[] }) {
     // Advance to next player
     setTurnIdx((i) => i + 1);
 
+    if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
     resultTimerRef.current = setTimeout(() => setTapResult(null), 600);
   }
 
-  function handleMiss() {
+  const handleMiss = useCallback(() => {
     sfx.buzz();
     drinkRain();
 
@@ -191,10 +91,32 @@ function ThumperGame({ players }: { players: Player[] }) {
     // Keep same player on the same beat — they drink then try again
     // Pause game briefly so DrinkCallout is visible
     setPhase("result");
+    if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
     resultTimerRef.current = setTimeout(() => {
       setTapResult(null);
       setPhase("playing");
     }, 2200);
+  }, []);
+
+  // Cleanup result timer on unmount
+  useEffect(() => {
+    return () => {
+      if (resultTimerRef.current) clearTimeout(resultTimerRef.current);
+    };
+  }, []);
+
+  // ----------------------------------------------------------------
+  // Beat hook — owns intervalRef, lastBeatRef, tapProcessedRef
+  // ----------------------------------------------------------------
+  const { pulseControls, judgeTap } = useThumperBeat({ phase, bpm, onMiss: handleMiss });
+
+  // ----------------------------------------------------------------
+  // Tap handler
+  // ----------------------------------------------------------------
+  function handleTap() {
+    const verdict = judgeTap();
+    if (verdict === "hit") handleHit();
+    else if (verdict === "miss") handleMiss();
   }
 
   function startGame() {
@@ -215,13 +137,12 @@ function ThumperGame({ players }: { players: Player[] }) {
     setBpm(BPM_START);
     setTurnIdx(0);
     setTapResult(null);
-    lastBeatRef.current = null;
-    tapProcessedRef.current = false;
   }
 
-  // ------------------------------------------------------------
+  // ----------------------------------------------------------------
   // Derived display values
-  // ------------------------------------------------------------
+  // ----------------------------------------------------------------
+  const activePlayer = players[turnIdx % players.length];
   const intervalMs = Math.round((60 / bpm) * 1000);
   const glowColor = tapResult?.kind === "hit" ? "#b6ff3c" : ACCENT;
 

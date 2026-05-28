@@ -55,6 +55,9 @@ function QuartersGame({ players }: { players: Player[] }) {
   const dirRef = useRef(1);
   const powerRef = useRef(0);
   const phaseRef = useRef<Phase>("idle");
+  // activeRef is set to false on unmount so the tick cannot run after the
+  // component is gone, even if a frame slips through cancelAnimationFrame.
+  const activeRef = useRef(true);
 
   const coinControls = useAnimationControls();
   const splashControls = useAnimationControls();
@@ -66,13 +69,22 @@ function QuartersGame({ players }: { players: Player[] }) {
     phaseRef.current = phase;
   }, [phase]);
 
+  // Mark the component unmounted so any in-flight tick exits immediately.
+  useEffect(() => {
+    activeRef.current = true;
+    return () => {
+      activeRef.current = false;
+    };
+  }, []);
+
   // Oscillating power meter (runs only in "idle" phase)
   const startMeter = useCallback(() => {
     dirRef.current = 1;
     powerRef.current = 0;
 
     function tick() {
-      if (phaseRef.current !== "idle") return;
+      // Stop if unmounted or phase has moved past idle.
+      if (!activeRef.current || phaseRef.current !== "idle") return;
       powerRef.current += METER_SPEED * dirRef.current;
       if (powerRef.current >= 100) { powerRef.current = 100; dirRef.current = -1; }
       if (powerRef.current <= 0)   { powerRef.current = 0;   dirRef.current =  1; }
@@ -83,7 +95,7 @@ function QuartersGame({ players }: { players: Player[] }) {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
-  // Start the meter when the phase is idle
+  // Start the meter when the phase is idle; cancel it on any phase change or unmount.
   useEffect(() => {
     if (phase === "idle") {
       startMeter();

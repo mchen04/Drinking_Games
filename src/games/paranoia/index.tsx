@@ -43,23 +43,33 @@ function useCoinFlip(onDone: (result: CoinSide) => void) {
   const [spinning, setSpinning] = useState(false);
   const [side, setSide] = useState<CoinSide | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onDoneRef = useRef(onDone);
+  useEffect(() => { onDoneRef.current = onDone; });
 
   function flip() {
-    if (spinning) return;
+    // Clear any orphaned timer before starting a new one
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
     setSpinning(true);
     setSide(null);
     sfx.whoosh();
     timerRef.current = setTimeout(() => {
+      timerRef.current = null;
       const result: CoinSide = Math.random() < 0.5 ? "heads" : "tails";
       setSide(result);
       setSpinning(false);
-      onDone(result);
+      onDoneRef.current(result);
     }, 1200);
   }
 
   useEffect(() => {
     return () => {
-      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      if (timerRef.current !== null) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
     };
   }, []);
 
