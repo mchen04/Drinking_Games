@@ -11,7 +11,7 @@ import { sfx } from "@/lib/sound";
 
 export default function ThreeManGame() {
   return (
-    <RequirePlayers min={2} accent="#b6ff3c">
+    <RequirePlayers min={3} accent="#b6ff3c">
       {(players) => <ThreeMan players={players} />}
     </RequirePlayers>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimationControls } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { randInt } from "@/lib/random";
 import { sfx } from "@/lib/sound";
 import { cn } from "@/lib/cn";
@@ -25,6 +25,8 @@ export interface WheelProps {
 export function Wheel({ segments, onResult, size = 320, className }: WheelProps) {
   const controls = useAnimationControls();
   const rotation = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => () => { mounted.current = false; }, []);
   const [busy, setBusy] = useState(false);
   const [winner, setWinner] = useState<number | null>(null);
 
@@ -53,6 +55,7 @@ export function Wheel({ segments, onResult, size = 320, className }: WheelProps)
       transition: { duration: 4.2, ease: [0.16, 1, 0.3, 1] },
     });
 
+    if (!mounted.current) return; // unmounted mid-spin — don't touch state
     setWinner(target);
     sfx.ding();
     onResult?.(target, segments[target]);

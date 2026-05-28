@@ -24,7 +24,7 @@ export const GAMES: GameMeta[] = [
   { id: "president", title: "President & Scum", tagline: "Climb from scumbag to president.", category: "cards", players: "3+", needs: ["Deck of cards"], difficulty: "Wild", emoji: "🎩" },
 
   // ---------------------------------------------------------------- dice
-  { id: "three-man", title: "Three Man", tagline: "Roll, assign, and dodge the Three Man.", category: "dice", players: "2+", needs: ["2 dice", "Drinks"], difficulty: "Wild", emoji: "🎲" },
+  { id: "three-man", title: "Three Man", tagline: "Roll, assign, and dodge the Three Man.", category: "dice", players: "3+", needs: ["2 dice", "Drinks"], difficulty: "Wild", emoji: "🎲" },
   { id: "mexico", title: "Mexico", tagline: "Bluff your roll. Lowest drinks.", category: "dice", players: "2+", needs: ["2 dice", "Drinks"], difficulty: "Wild", emoji: "🌮" },
   { id: "ship-captain-crew", title: "Ship, Captain, Crew", tagline: "Land the 6-5-4, score your cargo.", category: "dice", players: "2+", needs: ["5 dice", "Drinks"], difficulty: "Chill", emoji: "⚓" },
 
