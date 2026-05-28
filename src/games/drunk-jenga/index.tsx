@@ -100,7 +100,10 @@ function JengaGame({ players }: { players: Player[] }) {
       const falls = Math.random() < prob;
 
       if (falls) {
-        after(700, () => triggerCollapse(current));
+        after(700, () => {
+          triggerCollapse(current);
+          setPulling(false); // keep pulling state consistent after the collapse settles
+        });
       } else {
         setPulling(false);
       }

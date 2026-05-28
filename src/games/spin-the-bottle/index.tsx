@@ -7,6 +7,7 @@ import {
   RequirePlayers,
   GameHeading,
   DrinkCallout,
+  NeonButton,
 } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { pickRandom, randInt } from "@/lib/random";
@@ -252,27 +253,9 @@ function Game({ players }: { players: Player[] }) {
 
       {/* Buttons */}
       <div className="mt-6 flex gap-3">
-        <motion.button
-          type="button"
-          disabled={spinning}
-          whileHover={{ scale: spinning ? 1 : 1.04, y: spinning ? 0 : -2 }}
-          whileTap={{ scale: spinning ? 1 : 0.96 }}
-          transition={{ type: "spring", stiffness: 420, damping: 22 }}
-          onClick={() => {
-            if (spinning) return;
-            sfx.click();
-            spin();
-          }}
-          className="relative font-semibold tracking-wide border select-none px-7 py-3.5 text-lg rounded-2xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{
-            background: "#ffb627",
-            color: "#1a0a00",
-            borderColor: "#ffb627",
-            boxShadow: "0 0 24px -6px #ffb627",
-          }}
-        >
+        <NeonButton onClick={spin} size="lg" accent="#ffb627" disabled={spinning}>
           {spinning ? "Spinning…" : spunOnce ? "Spin again" : "Spin!"}
-        </motion.button>
+        </NeonButton>
       </div>
 
       <button

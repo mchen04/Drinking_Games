@@ -35,6 +35,8 @@ export interface NeonButtonProps {
   /** play a click sound (default true) */
   sound?: boolean;
   fullWidth?: boolean;
+  /** override the variant gradient with a solid accent hex (dark text) */
+  accent?: string;
 }
 
 export function NeonButton({
@@ -47,6 +49,7 @@ export function NeonButton({
   type = "button",
   sound = true,
   fullWidth,
+  accent,
 }: NeonButtonProps) {
   return (
     <motion.button
@@ -60,6 +63,11 @@ export function NeonButton({
         if (sound) sfx.click();
         onClick?.();
       }}
+      style={
+        accent
+          ? { background: accent, color: "#1a0a00", borderColor: accent, boxShadow: `0 0 24px -6px ${accent}` }
+          : undefined
+      }
       className={cn(
         "relative font-semibold tracking-wide border select-none",
         "transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
