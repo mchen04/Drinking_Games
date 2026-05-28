@@ -99,6 +99,7 @@ function Mexico({ players }: { players: Player[] }) {
   }
 
   function nextRound() {
+    clearAll();
     setRound((r) => r + 1);
     setCurrentIdx(0);
     setDice([1, 1]);

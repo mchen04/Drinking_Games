@@ -62,7 +62,7 @@ function useCoinFlip(onDone: (result: CoinSide) => void) {
     });
   }
 
-  return { flip, spinning, side };
+  return { flip, spinning, side, cancel: clearAll };
 }
 
 // ─── main game ───────────────────────────────────────────────────────────────
@@ -77,7 +77,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
   const asker = players[turnIdx % players.length];
 
   // ── coin flip ──
-  const { flip, spinning, side: coinSide } = useCoinFlip((result) => {
+  const { flip, spinning, side: coinSide, cancel: cancelFlip } = useCoinFlip((result) => {
     if (result === "heads") {
       sfx.ding();
       pop(0.5, 0.35);
@@ -110,6 +110,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
   }
 
   function nextRound() {
+    cancelFlip();
     setTurnIdx((i) => i + 1);
     setRoundCount((r) => r + 1);
     setQuestion("");
@@ -119,6 +120,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
   }
 
   function resetGame() {
+    cancelFlip();
     dealerRef.current = createDealer(QUESTIONS);
     setTurnIdx(0);
     setRoundCount(1);

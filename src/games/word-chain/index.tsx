@@ -91,7 +91,7 @@ function Game({ players }: { players: Player[] }) {
         inputRef.current?.focus();
       }, 2000);
     },
-    [players.length, clearPenalty],
+    [clearPenalty],
   );
 
   // Run the countdown. Restart whenever turnIndex or penalty changes.
