@@ -20,7 +20,6 @@ interface RoundState {
   phase: Phase;
   outcome: Outcome;
   totalDrinks: number;
-  drinksThisRound: number;
   revealing: boolean;
 }
 
@@ -71,7 +70,6 @@ function initialState(): RoundState {
     phase: "q1",
     outcome: null,
     totalDrinks: 0,
-    drinksThisRound: 0,
     revealing: false,
   };
 }
@@ -82,7 +80,7 @@ export default function RideTheBus() {
   const [state, setState] = useState<RoundState>(initialState);
   const { after, clearAll } = useTimeouts();
 
-  const { deck, cards, phase, outcome, totalDrinks, drinksThisRound, revealing } = state;
+  const { deck, cards, phase, outcome, totalDrinks, revealing } = state;
 
   // Draw the next card and mark the reveal in-flight.
   const drawCard = useCallback(
@@ -103,7 +101,6 @@ export default function RideTheBus() {
       newCards[idx] = drawnCard;
       const drinks = correct ? 0 : PHASE_DRINKS[qPhase];
       const newTotal = totalDrinks + drinks;
-      const newThisRound = drinksThisRound + drinks;
 
       if (correct) {
         sfx.ding();
@@ -119,7 +116,6 @@ export default function RideTheBus() {
         cards: newCards,
         outcome: correct ? "correct" : "wrong",
         totalDrinks: newTotal,
-        drinksThisRound: newThisRound,
         revealing: true,
       }));
 
@@ -132,7 +128,7 @@ export default function RideTheBus() {
         }));
       });
     },
-    [cards, totalDrinks, drinksThisRound, after],
+    [cards, totalDrinks, after],
   );
 
   // ── Q1: Red or Black ──────────────────────────────────────────────────────
