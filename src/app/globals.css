@@ -199,6 +199,32 @@ body {
   }
 }
 
+/* ------------------------------------------------------------------ */
+/*  Short-viewport (landscape phone) compaction                        */
+/*  Portrait phones (~844px tall) and desktop are untouched; we only   */
+/*  shrink the play surface when height is the binding constraint so   */
+/*  content-dense games still fit one screen sideways.                 */
+/* ------------------------------------------------------------------ */
+@media (max-height: 520px) {
+  .game-stage { zoom: 0.9; padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+}
+@media (max-height: 460px) {
+  .game-stage { zoom: 0.82; }
+}
+@media (max-height: 400px) {
+  .game-stage { zoom: 0.74; }
+}
+@media (max-height: 340px) {
+  .game-stage { zoom: 0.66; }
+}
+
+/* Pyramid grid uses real `zoom` (reflows, unlike transform:scale) so the flip
+   button stays on-screen. Height queries last → they win in landscape. */
+.pyramid-fit { zoom: 0.8; transform-origin: top center; }
+@media (min-width: 768px) { .pyramid-fit { zoom: 1; } }
+@media (max-height: 520px) { .pyramid-fit { zoom: 0.62; } }
+@media (max-height: 420px) { .pyramid-fit { zoom: 0.5; } }
+
 /* Respect users who ask for less motion: kill long/looping ambient animations
    and snap transitions, but keep the app fully functional. */
 @media (prefers-reduced-motion: reduce) {

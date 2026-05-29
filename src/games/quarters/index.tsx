@@ -371,7 +371,7 @@ function QuartersGame({ players }: { players: Player[] }) {
       </div>
 
       {/* ── OUTCOME PANEL ── */}
-      <div className="min-h-[6rem] w-full max-w-sm mt-3 flex flex-col items-center justify-center">
+      <div className="min-h-[6rem] [@media(max-height:520px)]:min-h-[3.5rem] w-full max-w-sm mt-3 [@media(max-height:520px)]:mt-1.5 flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {phase === "idle" && (
             <motion.div

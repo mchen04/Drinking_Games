@@ -45,7 +45,7 @@ export function GameShell({ meta, children }: { meta: GameMeta; children: ReactN
     <div className="relative h-[100dvh] flex flex-col overflow-hidden">
       <NeonBackground accent={cat.hex} />
 
-      <header className="shrink-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3">
+      <header className="shrink-0 z-30 px-3 py-2.5 sm:px-6 sm:py-3 [@media(max-height:520px)]:py-1.5">
         <div className="max-w-5xl mx-auto flex items-center gap-2.5 sm:gap-3">
           <Link
             href="/"
@@ -71,7 +71,7 @@ export function GameShell({ meta, children }: { meta: GameMeta; children: ReactN
               >
                 {meta.title}
               </h1>
-              <span className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-widest text-white/40">
+              <span className="text-[0.65rem] sm:text-[0.7rem] uppercase tracking-widest text-white/40 [@media(max-height:430px)]:hidden">
                 {cat.label}
               </span>
             </div>
@@ -95,7 +95,7 @@ export function GameShell({ meta, children }: { meta: GameMeta; children: ReactN
         <div className="game-stage py-3 sm:py-4">{children}</div>
       </motion.main>
 
-      <footer className="shrink-0 px-4 py-1.5 text-center text-[0.62rem] sm:text-[0.68rem] text-white/25">
+      <footer className="shrink-0 px-4 py-1.5 [@media(max-height:520px)]:py-0.5 text-center text-[0.62rem] sm:text-[0.68rem] [@media(max-height:430px)]:text-[0.55rem] text-white/25">
         {meta.needs && meta.needs.length > 0 && (
           <span className="hidden lg:inline">Needs: {meta.needs.join(" · ")} — </span>
         )}

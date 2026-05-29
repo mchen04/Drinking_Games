@@ -104,7 +104,7 @@ export default function Pyramid() {
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="flex flex-col items-center gap-1 sm:gap-1.5 mb-3 sm:mb-4 origin-top scale-[0.66] sm:scale-90 md:scale-100 [@media(max-height:560px)]:scale-[0.5] [@media(max-height:430px)]:scale-[0.42] -my-4 sm:-my-2 md:my-0"
+        className="pyramid-fit flex flex-col items-center gap-1 sm:gap-1.5 mb-3 sm:mb-4"
       >
         {[...ROW_SIZES].reverse().map((size, reversedIdx) => {
           // reversedIdx 0 = top row (row 4), reversedIdx 4 = bottom row (row 0)
@@ -232,8 +232,9 @@ export default function Pyramid() {
         )}
       </AnimatePresence>
 
-      {/* Callout for the current flipped card */}
-      <div className="min-h-[4rem] w-full max-w-md flex flex-col items-center justify-center">
+      {/* Callout for the current flipped card (no fixed reserve — keeps the
+          pyramid + flip button on one screen in landscape) */}
+      <div className="w-full max-w-md flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {currentCard && !done && (
             <motion.div

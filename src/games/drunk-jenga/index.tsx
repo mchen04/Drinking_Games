@@ -212,7 +212,7 @@ function JengaGame({ players }: { players: Player[] }) {
                         ? { x: rowIndex % 2 === 0 ? 140 : -140, opacity: 0, rotate: rowIndex % 2 === 0 ? 8 : -8, transition: { duration: 0.38, ease: [0.16, 1, 0.3, 1] } }
                         : { opacity: 0, transition: { duration: 0.15 } }
                     }
-                    className="rounded-sm w-[120px] h-[14px] sm:w-[160px] sm:h-[18px]"
+                    className="rounded-sm w-[120px] h-[14px] sm:w-[160px] sm:h-[18px] [@media(max-height:520px)]:h-[11px] [@media(max-height:520px)]:w-[150px]"
                     style={{
                       background: `linear-gradient(90deg, ${ACCENT}22, ${ACCENT}44, ${ACCENT}22)`,
                       border: `1px solid ${ACCENT}66`,
@@ -261,7 +261,7 @@ function JengaGame({ players }: { players: Player[] }) {
       )}
 
       {/* Dare reveal — fixed compact slot; collapse callout overlays larger */}
-      <div className="relative min-h-[5rem] sm:min-h-[6rem] w-full max-w-sm mb-3 sm:mb-4 flex items-center justify-center">
+      <div className="relative min-h-[5rem] sm:min-h-[6rem] [@media(max-height:520px)]:min-h-0 w-full max-w-sm mb-3 sm:mb-4 [@media(max-height:520px)]:mb-2 flex items-center justify-center">
         <AnimatePresence mode="wait">
           {collapsed && puller ? (
             <motion.div

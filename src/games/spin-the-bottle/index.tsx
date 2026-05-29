@@ -322,7 +322,7 @@ function Game({ players }: { players: Player[] }) {
       </div>
 
       {/* Result area */}
-      <div className="mt-2 min-h-[5.5rem] flex flex-col items-center justify-center w-full max-w-md">
+      <div className="mt-1 min-h-[3rem] [@media(max-height:520px)]:min-h-[2rem] flex flex-col items-center justify-center w-full max-w-md">
         <AnimatePresence mode="wait">
           {chosen && !spinning ? (
             <motion.div
