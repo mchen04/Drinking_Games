@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, type AnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 
 // ─── Constants (re-exported so index.tsx shares the same values) ──────────────
 
@@ -213,7 +214,7 @@ export function GlassDisplay({ fillPct, phase, glassControls }: GlassDisplayProp
                 initial={{ x: 0, y: 0, scale: 0.2, opacity: 0 }}
                 animate={{ x: d.x, y: d.y, scale: 1, opacity: [0, 1, 0] }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.65, ease: "easeOut", delay: i * 0.015 }}
+                transition={{ duration: 0.65, ease: EASE_OUT, delay: i * 0.015 }}
               />
             ))}
             {/* Foam crown bursting over the rim */}
@@ -222,7 +223,7 @@ export function GlassDisplay({ fillPct, phase, glassControls }: GlassDisplayProp
               style={{ width: 70, height: 16, filter: "blur(3px)" }}
               initial={{ scale: 0.4, opacity: 0, y: 4 }}
               animate={{ scale: [0.4, 1.2, 1], opacity: [0, 0.9, 0], y: -6 }}
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: EASE_OUT }}
             />
           </div>
         )}

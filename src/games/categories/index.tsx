@@ -193,7 +193,7 @@ function Categories({ players }: { players: Player[] }) {
                   className="absolute -inset-1 rounded-full -z-10"
                   initial={{ opacity: 0.7, scale: 0.8 }}
                   animate={{ opacity: 0, scale: 1.5 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  transition={{ duration: 0.6, ease: EASE_OUT }}
                   style={{ background: p.color }}
                 />
               )}
@@ -324,7 +324,7 @@ function Categories({ players }: { players: Player[] }) {
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1, x: [0, -10, 10, -6, 6, 0] }}
             exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.45, ease: "easeOut" }}
+            transition={{ duration: 0.45, ease: EASE_OUT }}
             className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-0 z-20"
           >
             <DrinkCallout text={drinkMsg} accent={ACCENT} />

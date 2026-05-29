@@ -151,7 +151,7 @@ export default function KingsCup() {
                   className="absolute left-1/2 bottom-1 w-1.5 h-1.5 rounded-full bg-white/60"
                   initial={{ y: 0, opacity: 0.8, scale: 0.6 }}
                   animate={{ y: -36, opacity: 0, scale: 1.2 }}
-                  transition={{ duration: 1.1, ease: "easeOut" }}
+                  transition={{ duration: 1.1, ease: EASE_OUT }}
                 />
               )}
             </AnimatePresence>

@@ -122,7 +122,7 @@ export default function BeerBlitz() {
       setSpeed((spd) => Math.min(spd + SPEED_STEP, MAX_SPEED));
       void pulseControls.start({
         scale: [1, 1.12, 1],
-        transition: { duration: 0.35, ease: "easeOut" },
+        transition: { duration: 0.35, ease: EASE_OUT },
       });
       schedulePhase("idle", 1200);
     } else {

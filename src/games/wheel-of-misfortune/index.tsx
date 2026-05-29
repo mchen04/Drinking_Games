@@ -82,7 +82,7 @@ function Game({ players }: { players: Player[] }) {
             className="w-3 h-3 rounded-full flex-shrink-0"
             style={{ background: currentPlayer.color }}
             animate={{ boxShadow: [`0 0 0 0 ${currentPlayer.color}66`, `0 0 0 6px ${currentPlayer.color}00`] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: EASE_OUT }}
           />
           <span className="text-white/80">
             Spinning:{" "}

@@ -200,7 +200,7 @@ function MedusaGame({ players }: { players: Player[] }) {
                 key={`vignette-${count}`}
                 initial={{ opacity: 0.55, scale: 0.6 }}
                 animate={{ opacity: 0, scale: 1.3 }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
+                transition={{ duration: 0.9, ease: EASE_OUT }}
                 className="absolute inset-0 -m-8 rounded-full pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, ${ACCENT}55 0%, transparent 65%)`,
@@ -270,7 +270,7 @@ function MedusaGame({ players }: { players: Player[] }) {
               <motion.div
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: EASE_OUT }}
                 className="absolute inset-0 -m-6 rounded-3xl pointer-events-none"
                 style={{
                   background: `radial-gradient(circle, #ffffff 0%, ${ACCENT} 35%, transparent 75%)`,
@@ -390,7 +390,7 @@ function MedusaGame({ players }: { players: Player[] }) {
             >
               <motion.div
                 animate={{ y: [0, -18, 0, -8, 0], scale: [1, 1.12, 1, 1.05, 1] }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                transition={{ duration: 0.8, ease: EASE_OUT }}
                 className="text-5xl select-none"
               >
                 😅

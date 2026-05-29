@@ -65,7 +65,7 @@ function GlassIcon({
     safe: {
       y: [0, -14, 0],
       rotate: [0, -15, 0],
-      transition: { duration: 0.35, ease: "easeOut" as const },
+      transition: { duration: 0.35, ease: EASE_OUT },
     },
     idle: { x: 0, y: 0, rotate: 0 },
   };
@@ -116,7 +116,7 @@ function GlassIcon({
             style={{ background: "radial-gradient(circle, #ffffff 0%, #ff2d95 45%, transparent 70%)" }}
             initial={{ scale: 0.2, opacity: 0 }}
             animate={{ scale: [0.2, 2.2, 1.4], opacity: [0, 0.95, 0] }}
-            transition={{ duration: 0.7, ease: "easeOut", times: [0, 0.3, 1] }}
+            transition={{ duration: 0.7, ease: EASE_OUT, times: [0, 0.3, 1] }}
           />
         )}
         {/* Safe — a calm teal ring expands outward (sigh of relief) */}
@@ -126,7 +126,7 @@ function GlassIcon({
             style={{ border: "2px solid #2de2c0" }}
             initial={{ scale: 0.3, opacity: 0.8 }}
             animate={{ scale: 2.4, opacity: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: EASE_OUT }}
           />
         )}
         <svg

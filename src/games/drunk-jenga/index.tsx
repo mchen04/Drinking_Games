@@ -92,7 +92,7 @@ function JengaGame({ players }: { players: Player[] }) {
       const wobble = ((TOTAL_BLOCKS - newBlocks.length) / TOTAL_BLOCKS) * 6;
       void towerControls.start({
         rotate: [0, wobble * 0.6, -wobble * 0.4, wobble * 0.25, 0],
-        transition: { duration: 0.55, ease: "easeOut" },
+        transition: { duration: 0.55, ease: EASE_OUT },
       });
 
       // Decide collapse

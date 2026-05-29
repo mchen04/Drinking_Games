@@ -167,7 +167,7 @@ function VotePanel({ players, loser, showDrink, onVote, onClear }: VotePanelProp
                 className="absolute -top-1 text-2xl pointer-events-none"
                 initial={{ opacity: 0, scale: 0.4, y: 4 }}
                 animate={{ opacity: [0, 1, 0], scale: [0.4, 1.6, 1.9], y: [-2, -22, -34] }}
-                transition={{ duration: 0.9, ease: "easeOut" }}
+                transition={{ duration: 0.9, ease: EASE_OUT }}
               >
                 👆
               </motion.span>

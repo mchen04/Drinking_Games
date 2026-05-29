@@ -279,7 +279,7 @@ function TwoTruths({ players }: { players: Player[] }) {
                   ? { x: [0, -10, 10, -6, 6, 0] }
                   : { scale: [1, 1.14, 0.97, 1] }
               }
-              transition={{ duration: 0.5, ease: "easeOut" }}
+              transition={{ duration: 0.5, ease: EASE_OUT }}
               className="w-full flex justify-center"
             >
               {outcome === "liar" ? (

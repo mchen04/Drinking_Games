@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
@@ -208,7 +209,7 @@ function Game({ players }: { players: Player[] }) {
                     ? { y: [0, -8, 0, -4, 0] }
                     : { x: [0, -10, 10, -6, 6, 0] }
                 }
-                transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+                transition={{ duration: 0.5, ease: EASE_OUT, delay: 0.18 }}
               >
                 {outcome.majority === "tie" ? (
                   <DrinkCallout text="It's a tie — everyone sips!" accent={ACCENT} />
