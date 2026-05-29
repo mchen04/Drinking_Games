@@ -278,10 +278,12 @@ function Game({ players }: { players: Player[] }) {
       <div className="flex flex-wrap justify-center gap-3 mb-6">
         {dice.map((v, i) => {
           const isLocked = locked[i];
-          // Determine label for locked dice
+          // Locked dice are exactly the secured sequence (one 6, one 5, one 4),
+          // so a locked die's role is unambiguous from its value. Cargo dice are
+          // the UNLOCKED dice — labelled once all three sequence dice are secured.
           const seqIdx = REQUIRED.indexOf(v);
-          const isSeqLocked = isLocked && seqIdx >= 0 && countSecured(locked, dice) > seqIdx;
-          const isCargo = isLocked && !isSeqLocked;
+          const isSeqLocked = isLocked && seqIdx >= 0;
+          const isCargo = !isLocked && hasAll;
           return (
             <div key={i} className="flex flex-col items-center gap-1.5">
               <Die

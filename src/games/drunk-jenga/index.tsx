@@ -105,7 +105,9 @@ function JengaGame({ players }: { players: Player[] }) {
           setPulling(false); // keep pulling state consistent after the collapse settles
         });
       } else {
-        setPulling(false);
+        // Re-enable pulling only after the settle wobble (0.55s) finishes,
+        // so a rapid tap can't start a new pull mid-animation (double-pull).
+        after(550, () => setPulling(false));
       }
     });
   }
