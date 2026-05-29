@@ -3,12 +3,7 @@
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
-import {
-  RequirePlayers,
-  GameHeading,
-  DrinkCallout,
-  NeonButton,
-} from "@/components/ui";
+import { RequirePlayers, DrinkCallout, NeonButton } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { pickRandom, randInt } from "@/lib/random";
 import { sfx } from "@/lib/sound";
@@ -131,127 +126,239 @@ function Game({ players }: { players: Player[] }) {
   );
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <GameHeading
-        title="Spin the Bottle"
-        subtitle="Spin 🍾 — it lands on someone. They get a dare or take a drink."
-        accent={ACCENT}
-      />
+    <motion.div
+      className="flex flex-col items-center select-none"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-white/50 text-sm text-center mb-2">
+        Spin 🍾 — it lands on someone. They get a dare or take a drink.
+      </p>
 
-      {/* Circle arena */}
+      {/* Circle arena — scaled down on short/narrow viewports so it always fits */}
       <div
-        className="relative flex items-center justify-center mx-auto"
+        className="origin-center scale-[0.74] sm:scale-100 -my-6 sm:my-0"
         style={{ width: arenaSize, height: arenaSize }}
       >
-        {/* Player chips around the circle */}
-        {players.map((p, i) => {
-          const pos = playerPositions[i];
-          const isChosen = chosen?.id === p.id;
-          return (
-            <motion.div
-              key={p.id}
-              className="absolute flex flex-col items-center gap-1"
-              style={{
-                left: arenaSize / 2 + pos.x - chipSize / 2,
-                top: arenaSize / 2 + pos.y - chipSize / 2,
-                width: chipSize,
-              }}
-              animate={
-                isChosen
-                  ? { scale: 1.22 }
-                  : { scale: 1 }
-              }
-              transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            >
-              {/* Avatar circle */}
-              <div
-                className="rounded-full flex items-center justify-center font-bold text-sm"
-                style={{
-                  width: chipSize,
-                  height: chipSize,
-                  background: isChosen ? p.color : `${p.color}33`,
-                  border: `2px solid ${p.color}`,
-                  boxShadow: isChosen
-                    ? `0 0 20px 4px ${p.color}, 0 0 40px 8px ${p.color}55`
-                    : `0 0 8px 1px ${p.color}44`,
-                  color: isChosen ? "#1a0a00" : p.color,
-                  transition: "background 0.3s, box-shadow 0.3s",
-                }}
-              >
-                {p.name.charAt(0).toUpperCase()}
-              </div>
-              {/* Name label */}
-              <span
-                className="text-[10px] font-semibold leading-tight text-center w-16 truncate"
-                style={{ color: isChosen ? p.color : "rgba(255,255,255,0.6)" }}
-              >
-                {p.name}
-              </span>
-            </motion.div>
-          );
-        })}
-
-        {/* Bottle in the center */}
-        <motion.div
-          animate={controls}
-          className="absolute"
-          style={{
-            // Position dead-center; let framer-motion rotate around this center
-            left: arenaSize / 2 - 16,
-            top: arenaSize / 2 - 16,
-            width: 32,
-            height: 32,
-            fontSize: 32,
-            lineHeight: 1,
-            transformOrigin: "center center",
-            cursor: spinning ? "default" : "pointer",
-            filter: spinning
-              ? `drop-shadow(0 0 12px ${ACCENT})`
-              : `drop-shadow(0 0 6px ${ACCENT}88)`,
-          }}
-          onClick={spin}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              spin();
-            }
-          }}
-          role="button"
-          tabIndex={spinning ? -1 : 0}
-          aria-label="Spin the bottle"
-          title="Click to spin"
+        <div
+          className="relative flex items-center justify-center"
+          style={{ width: arenaSize, height: arenaSize }}
         >
-          🍾
-        </motion.div>
+          {/* Ambient arena glow */}
+          <motion.div
+            aria-hidden
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              width: RADIUS * 1.7,
+              height: RADIUS * 1.7,
+              background: `radial-gradient(circle, ${ACCENT}22 0%, transparent 70%)`,
+            }}
+            animate={
+              spinning
+                ? { scale: [1, 1.08, 1], opacity: [0.6, 0.9, 0.6] }
+                : { scale: 1, opacity: 0.4 }
+            }
+            transition={{
+              duration: 1.2,
+              repeat: spinning ? Infinity : 0,
+              ease: "easeInOut",
+            }}
+          />
+
+          {/* Orbit ring */}
+          <div
+            aria-hidden
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              width: RADIUS * 2,
+              height: RADIUS * 2,
+              border: `1px dashed ${ACCENT}33`,
+            }}
+          />
+
+          {/* Player chips around the circle */}
+          {players.map((p, i) => {
+            const pos = playerPositions[i];
+            const isChosen = chosen?.id === p.id;
+            return (
+              <motion.div
+                key={p.id}
+                layout
+                className="absolute flex flex-col items-center gap-1"
+                style={{
+                  left: arenaSize / 2 + pos.x - chipSize / 2,
+                  top: arenaSize / 2 + pos.y - chipSize / 2,
+                  width: chipSize,
+                }}
+                initial={{ opacity: 0, scale: 0.4 }}
+                animate={
+                  isChosen
+                    ? { opacity: 1, scale: [1, 1.3, 1.22] }
+                    : { opacity: 1, scale: 1 }
+                }
+                transition={
+                  isChosen
+                    ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+                    : { type: "spring", stiffness: 280, damping: 20 }
+                }
+              >
+                {/* Avatar circle */}
+                <motion.div
+                  className="rounded-full flex items-center justify-center font-bold text-sm"
+                  style={{
+                    width: chipSize,
+                    height: chipSize,
+                    background: isChosen ? p.color : `${p.color}33`,
+                    border: `2px solid ${p.color}`,
+                    color: isChosen ? "#1a0a00" : p.color,
+                    transition: "background 0.3s, color 0.3s",
+                  }}
+                  animate={
+                    isChosen
+                      ? {
+                          boxShadow: [
+                            `0 0 20px 4px ${p.color}, 0 0 40px 8px ${p.color}55`,
+                            `0 0 32px 8px ${p.color}, 0 0 60px 14px ${p.color}66`,
+                            `0 0 20px 4px ${p.color}, 0 0 40px 8px ${p.color}55`,
+                          ],
+                        }
+                      : { boxShadow: `0 0 8px 1px ${p.color}44` }
+                  }
+                  transition={
+                    isChosen
+                      ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" }
+                      : { duration: 0.3 }
+                  }
+                >
+                  {p.name.charAt(0).toUpperCase()}
+                </motion.div>
+                {/* Name label */}
+                <span
+                  className="text-[10px] font-semibold leading-tight text-center w-16 truncate"
+                  style={{
+                    color: isChosen ? p.color : "rgba(255,255,255,0.6)",
+                  }}
+                >
+                  {p.name}
+                </span>
+              </motion.div>
+            );
+          })}
+
+          {/* Spin glow trail — fades in behind the bottle while spinning */}
+          <AnimatePresence>
+            {spinning && (
+              <motion.div
+                key="trail"
+                aria-hidden
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  left: arenaSize / 2 - RADIUS,
+                  top: arenaSize / 2 - RADIUS,
+                  width: RADIUS * 2,
+                  height: RADIUS * 2,
+                  background: `conic-gradient(from -90deg, ${ACCENT}00 0deg, ${ACCENT}00 300deg, ${ACCENT}66 350deg, ${ACCENT}cc 360deg)`,
+                  maskImage:
+                    "radial-gradient(circle, transparent 38%, #000 40%, #000 50%, transparent 52%)",
+                  WebkitMaskImage:
+                    "radial-gradient(circle, transparent 38%, #000 40%, #000 50%, transparent 52%)",
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 1, 1, 0.85] }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Bottle in the center */}
+          <motion.div
+            animate={controls}
+            className="absolute"
+            style={{
+              // Position dead-center; let framer-motion rotate around this center
+              left: arenaSize / 2 - 16,
+              top: arenaSize / 2 - 16,
+              width: 32,
+              height: 32,
+              fontSize: 32,
+              lineHeight: 1,
+              transformOrigin: "center center",
+              cursor: spinning ? "default" : "pointer",
+              filter: spinning
+                ? `drop-shadow(0 0 14px ${ACCENT}) drop-shadow(0 0 28px ${ACCENT}88)`
+                : `drop-shadow(0 0 6px ${ACCENT}88)`,
+            }}
+            onClick={spin}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                spin();
+              }
+            }}
+            role="button"
+            tabIndex={spinning ? -1 : 0}
+            aria-label="Spin the bottle"
+            title="Click to spin"
+          >
+            🍾
+          </motion.div>
+
+          {/* Center hub dot */}
+          <div
+            aria-hidden
+            className="absolute rounded-full pointer-events-none"
+            style={{
+              left: arenaSize / 2 - 4,
+              top: arenaSize / 2 - 4,
+              width: 8,
+              height: 8,
+              background: ACCENT,
+              boxShadow: `0 0 10px 2px ${ACCENT}`,
+            }}
+          />
+        </div>
       </div>
 
       {/* Result area */}
-      <div className="mt-4 min-h-[7rem] flex flex-col items-center justify-center w-full max-w-md">
+      <div className="mt-2 min-h-[5.5rem] flex flex-col items-center justify-center w-full max-w-md">
         <AnimatePresence mode="wait">
           {chosen && !spinning ? (
             <motion.div
               key={chosen.id + dare}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              className="flex flex-col items-center gap-3 w-full"
+              initial={{ opacity: 0, y: 16, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="flex flex-col items-center gap-2.5 w-full"
             >
-              <DrinkCallout
-                text={`${chosen.name}, it's your turn!`}
-                accent={ACCENT}
-              />
-              <p
-                className="glass-strong rounded-2xl px-5 py-3 text-center text-white/85 text-sm max-w-xs"
+              <motion.div
+                initial={{ scale: 1.5 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              >
+                <DrinkCallout
+                  text={`${chosen.name}, it's your turn!`}
+                  accent={ACCENT}
+                />
+              </motion.div>
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="glass-strong rounded-2xl px-5 py-2.5 text-center text-white/85 text-sm max-w-xs"
                 style={{ boxShadow: `0 0 28px -10px ${ACCENT}` }}
               >
                 {dare}
-              </p>
+              </motion.p>
             </motion.div>
           ) : !spunOnce ? (
             <motion.p
               key="hint"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="text-white/40 text-sm text-center"
             >
               Tap the bottle — or hit Spin — to begin.
@@ -261,7 +368,7 @@ function Game({ players }: { players: Player[] }) {
       </div>
 
       {/* Buttons */}
-      <div className="mt-6 flex gap-3">
+      <div className="mt-3 flex gap-3">
         <NeonButton onClick={spin} size="lg" accent="#ffb627" disabled={spinning}>
           {spinning ? "Spinning…" : spunOnce ? "Spin again" : "Spin!"}
         </NeonButton>
@@ -269,10 +376,10 @@ function Game({ players }: { players: Player[] }) {
 
       <button
         onClick={reset}
-        className="mt-6 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> reset
       </button>
-    </div>
+    </motion.div>
   );
 }

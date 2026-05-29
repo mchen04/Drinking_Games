@@ -45,7 +45,7 @@ export function Dashboard() {
           initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display font-extrabold leading-[0.88] text-[clamp(2.5rem,13vw,7rem)]"
+          className="font-display font-extrabold leading-[0.88] text-[max(2.4rem,min(13vw,17vh,7rem))]"
         >
           <span
             className="block bg-gradient-to-br from-neon-pink via-neon-violet to-neon-cyan bg-clip-text text-transparent neon-text animate-gradient"

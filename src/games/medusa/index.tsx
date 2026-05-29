@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, RotateCcw } from "lucide-react";
-import { NeonButton, GameHeading, DrinkCallout, RequirePlayers } from "@/components/ui";
+import { NeonButton, DrinkCallout, RequirePlayers } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { sfx } from "@/lib/sound";
 import { celebrate, drinkRain } from "@/lib/confetti";
@@ -110,26 +110,42 @@ function MedusaGame({ players }: { players: Player[] }) {
   const playerCount = players.length;
 
   return (
-    <div className="flex flex-col items-center min-h-0">
-      <GameHeading
-        title="Medusa 🐍"
-        subtitle={`${playerCount} players · heads down, then look up at someone`}
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center min-h-0 w-full">
+      <p className="text-white/50 text-sm text-center mb-3">
+        {playerCount} players · heads down, then look up at someone
+      </p>
 
       {/* Stats row */}
-      <div className="flex gap-5 mb-6 text-sm text-white/50">
+      <div className="flex gap-5 mb-3 text-sm text-white/50">
         <span>
-          round <b className="text-white">{rounds + 1}</b>
+          round{" "}
+          <motion.b
+            key={rounds}
+            initial={{ scale: 1.5, color: ACCENT }}
+            animate={{ scale: 1, color: "#ffffff" }}
+            transition={{ type: "spring", stiffness: 320, damping: 18 }}
+            className="inline-block text-white"
+          >
+            {rounds + 1}
+          </motion.b>
         </span>
         <span>
           drinks poured{" "}
-          <b style={{ color: ACCENT }}>{totalDrinks}</b>
+          <motion.b
+            key={totalDrinks}
+            initial={{ scale: 1.6 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 16 }}
+            className="inline-block"
+            style={{ color: ACCENT }}
+          >
+            {totalDrinks}
+          </motion.b>
         </span>
       </div>
 
       {/* Main play area */}
-      <div className="w-full max-w-sm relative min-h-[22rem] flex flex-col items-center justify-center">
+      <div className="w-full max-w-sm relative min-h-[16rem] sm:min-h-[20rem] flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {/* ── IDLE ── */}
           {phase === "idle" && (
@@ -138,17 +154,18 @@ function MedusaGame({ players }: { players: Player[] }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -16 }}
-              className="flex flex-col items-center gap-6 w-full"
+              transition={{ type: "spring", stiffness: 300, damping: 24 }}
+              className="flex flex-col items-center gap-4 w-full"
             >
               <motion.div
                 animate={{ scale: [1, 1.08, 1] }}
                 transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
-                className="text-7xl select-none"
+                className="text-5xl sm:text-7xl select-none"
               >
                 😴
               </motion.div>
 
-              <div className="glass-strong rounded-3xl px-6 py-5 text-center max-w-xs w-full"
+              <div className="glass-strong rounded-3xl px-5 py-4 text-center max-w-xs w-full"
                 style={{ boxShadow: `0 0 40px -14px ${ACCENT}` }}>
                 <p className="text-white/80 leading-snug text-sm">
                   Everyone puts their head <b className="text-white">down</b>. On
@@ -175,31 +192,43 @@ function MedusaGame({ players }: { players: Player[] }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-4 w-full"
+              className="flex flex-col items-center gap-3 w-full relative"
             >
+              {/* Tension vignette — pulses harder each tick */}
+              <motion.div
+                key={`vignette-${count}`}
+                initial={{ opacity: 0.55, scale: 0.6 }}
+                animate={{ opacity: 0, scale: 1.3 }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
+                className="absolute inset-0 -m-8 rounded-full pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, ${ACCENT}55 0%, transparent 65%)`,
+                }}
+              />
+
               {/* Pulsing snake ring */}
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                className="text-4xl select-none mb-2"
+                className="text-3xl sm:text-4xl select-none relative"
               >
                 🐍
               </motion.div>
 
-              <p className="text-white/60 text-sm uppercase tracking-widest">
+              <p className="text-white/60 text-sm uppercase tracking-widest relative">
                 heads down…
               </p>
 
               <AnimatePresence mode="wait">
                 <motion.div
                   key={count}
-                  initial={{ scale: 2.2, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
+                  initial={{ scale: 2.2, opacity: 0, rotate: -8 }}
+                  animate={{ scale: 1, opacity: 1, rotate: 0 }}
                   exit={{ scale: 0.4, opacity: 0 }}
                   transition={{ type: "spring", stiffness: 380, damping: 22 }}
-                  className="font-display select-none"
+                  className="font-display select-none relative"
                   style={{
-                    fontSize: "clamp(6rem, 22vw, 9rem)",
+                    fontSize: "clamp(4.5rem, 22vw, 9rem)",
                     color: ACCENT,
                     textShadow: `0 0 60px ${ACCENT}, 0 0 120px ${ACCENT}88`,
                     lineHeight: 1,
@@ -210,7 +239,7 @@ function MedusaGame({ players }: { players: Player[] }) {
               </AnimatePresence>
 
               {/* Tension bars */}
-              <div className="flex gap-1 mt-2">
+              <div className="flex gap-1 mt-1 relative">
                 {[3, 2, 1].map((n) => (
                   <motion.div
                     key={n}
@@ -234,29 +263,35 @@ function MedusaGame({ players }: { players: Player[] }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.2 }}
               transition={{ type: "spring", stiffness: 340, damping: 18 }}
-              className="flex flex-col items-center gap-6 w-full"
+              className="flex flex-col items-center gap-4 w-full"
             >
-              {/* Flash backdrop */}
+              {/* Camera-flash backdrop — fast bright pop then fade */}
               <motion.div
                 initial={{ opacity: 1 }}
                 animate={{ opacity: 0 }}
-                transition={{ duration: 0.6 }}
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                style={{ background: ACCENT }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="absolute inset-0 -m-6 rounded-3xl pointer-events-none"
+                style={{
+                  background: `radial-gradient(circle, #ffffff 0%, ${ACCENT} 35%, transparent 75%)`,
+                }}
               />
 
               <motion.div
-                animate={{ scale: [1, 1.15, 1] }}
-                transition={{ repeat: 2, duration: 0.35 }}
-                className="text-6xl select-none"
+                initial={{ scale: 0.2, rotate: -20 }}
+                animate={{ scale: [0.2, 1.25, 1], rotate: [-20, 0, 0] }}
+                transition={{ duration: 0.5, times: [0, 0.6, 1], ease: [0.16, 1, 0.3, 1] }}
+                className="text-5xl sm:text-6xl select-none relative"
               >
                 👀
               </motion.div>
 
               <motion.p
-                className="font-display uppercase tracking-widest text-center"
+                initial={{ scale: 1.8, opacity: 0, letterSpacing: "0.4em" }}
+                animate={{ scale: 1, opacity: 1, letterSpacing: "0.1em" }}
+                transition={{ type: "spring", stiffness: 300, damping: 16, delay: 0.05 }}
+                className="font-display uppercase tracking-widest text-center relative"
                 style={{
-                  fontSize: "clamp(2.4rem, 10vw, 4rem)",
+                  fontSize: "clamp(2rem, 10vw, 4rem)",
                   color: "#fff",
                   textShadow: `0 0 40px ${ACCENT}, 0 0 80px ${ACCENT}`,
                   lineHeight: 1.1,
@@ -265,18 +300,31 @@ function MedusaGame({ players }: { players: Player[] }) {
                 HEADS UP!
               </motion.p>
 
-              <p
-                className="font-display text-lg uppercase tracking-wider"
-                style={{ color: ACCENT }}
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: [0, 1, 0.85, 1], y: 0 }}
+                transition={{ duration: 0.7, delay: 0.25 }}
+                className="font-display text-lg uppercase tracking-wider relative"
+                style={{ color: ACCENT, textShadow: `0 0 18px ${ACCENT}` }}
               >
                 — MEDUSA! —
-              </p>
+              </motion.p>
 
-              <p className="text-white/60 text-sm text-center max-w-xs">
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35 }}
+                className="text-white/60 text-sm text-center max-w-xs relative"
+              >
                 Did anyone lock eyes?
-              </p>
+              </motion.p>
 
-              <div className="flex gap-3 flex-wrap justify-center">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 22 }}
+                className="flex gap-3 flex-wrap justify-center relative"
+              >
                 <NeonButton onClick={handleLocked} size="lg" variant="danger">
                   <Eye size={18} className="inline mr-1" />
                   Eyes locked! 🐍
@@ -285,7 +333,7 @@ function MedusaGame({ players }: { players: Player[] }) {
                   <EyeOff size={18} className="inline mr-1" />
                   No eye contact 😅
                 </NeonButton>
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -294,13 +342,13 @@ function MedusaGame({ players }: { players: Player[] }) {
             <motion.div
               key="locked"
               initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
+              animate={{ opacity: 1, y: 0, x: [0, -10, 10, -6, 6, 0] }}
               exit={{ opacity: 0 }}
               transition={{ type: "spring", stiffness: 280, damping: 20 }}
-              className="flex flex-col items-center gap-5 w-full"
+              className="flex flex-col items-center gap-4 w-full"
             >
               <motion.div
-                animate={{ rotate: [0, -12, 12, -8, 8, 0] }}
+                animate={{ rotate: [0, -12, 12, -8, 8, 0], scale: [1, 1.18, 1] }}
                 transition={{ duration: 0.7, ease: "easeInOut" }}
                 className="text-5xl select-none"
               >
@@ -308,7 +356,7 @@ function MedusaGame({ players }: { players: Player[] }) {
               </motion.div>
 
               <div
-                className="glass-strong rounded-3xl px-6 py-5 text-center w-full"
+                className="glass-strong rounded-3xl px-5 py-4 text-center w-full"
                 style={{ boxShadow: `0 0 60px -10px ${ACCENT}` }}
               >
                 <p
@@ -337,17 +385,17 @@ function MedusaGame({ players }: { players: Player[] }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ type: "spring", stiffness: 280, damping: 20 }}
-              className="flex flex-col items-center gap-5 w-full"
+              className="flex flex-col items-center gap-4 w-full"
             >
               <motion.div
-                animate={{ y: [0, -10, 0] }}
-                transition={{ repeat: 2, duration: 0.5, ease: "easeInOut" }}
+                animate={{ y: [0, -18, 0, -8, 0], scale: [1, 1.12, 1, 1.05, 1] }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 className="text-5xl select-none"
               >
                 😅
               </motion.div>
 
-              <div className="glass-strong rounded-3xl px-6 py-5 text-center w-full"
+              <div className="glass-strong rounded-3xl px-5 py-4 text-center w-full"
                 style={{ boxShadow: "0 0 40px -16px #2de2c0" }}>
                 <p className="font-display text-2xl text-white mb-1 uppercase tracking-wider">
                   Safe!
@@ -368,7 +416,7 @@ function MedusaGame({ players }: { players: Player[] }) {
       {/* Reset */}
       <button
         onClick={reset}
-        className="mt-8 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> reset game
       </button>

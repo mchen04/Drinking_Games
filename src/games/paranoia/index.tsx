@@ -6,7 +6,6 @@ import { Eye, EyeOff, RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
 import {
   RequirePlayers,
-  GameHeading,
   NeonButton,
   DrinkCallout,
   PlayerChip,
@@ -130,15 +129,14 @@ function ParanoiaGame({ players }: { players: Player[] }) {
   }
 
   return (
-    <div className="flex flex-col items-center px-2 pb-8">
-      <GameHeading
-        title="Paranoia"
-        subtitle={`Round ${roundCount} · The question stays secret — unless they dare to flip.`}
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center px-2 w-full">
+      <p className="text-white/50 text-sm text-center mb-3">
+        <span className="text-white/70 font-semibold">Round {roundCount}</span>
+        {" · "}The question stays secret — unless they dare to flip.
+      </p>
 
       {/* player chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8">
+      <motion.div layout className="flex flex-wrap justify-center gap-2 mb-4">
         {players.map((p, i) => (
           <PlayerChip
             key={p.id}
@@ -146,7 +144,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
             active={i === turnIdx % players.length}
           />
         ))}
-      </div>
+      </motion.div>
 
       {/* phase content */}
       <div className="w-full max-w-sm">
@@ -155,15 +153,25 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── PASS ── */}
           {phase === "pass" && (
             <PhaseCard key="pass">
-              <div className="text-5xl mb-4">📱</div>
-              <p className="text-white/60 text-sm mb-1">Pass the phone to</p>
-              <p
-                className="font-display text-2xl mb-6"
+              <motion.div
+                className="text-5xl mb-3"
+                animate={{ y: [0, -6, 0], rotate: [-3, 3, -3] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                📱
+              </motion.div>
+              <p className="text-white/60 text-sm mb-0.5">Pass the phone to</p>
+              <motion.p
+                key={asker.id}
+                className="font-display text-2xl mb-3"
                 style={{ color: asker.color }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 20 }}
               >
                 {asker.name}
-              </p>
-              <p className="text-white/40 text-xs mb-6">
+              </motion.p>
+              <p className="text-white/40 text-xs mb-4">
                 Only {asker.name} should be looking at the screen.
               </p>
               <NeonButton onClick={startRound} size="lg" variant="primary">
@@ -175,22 +183,25 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── READ ── */}
           {phase === "read" && (
             <PhaseCard key="read">
-              <div className="flex items-center gap-2 text-xs text-white/40 mb-4">
+              <div className="flex items-center gap-2 text-xs text-white/40 mb-3">
                 <Eye size={14} />
                 <span>Only you can see this</span>
               </div>
-              <p className="text-white/50 text-xs uppercase tracking-widest mb-3">
+              <p className="text-white/50 text-xs uppercase tracking-widest mb-2">
                 Your question
               </p>
-              <div
-                className="glass-strong rounded-2xl p-5 text-center mb-6"
+              <motion.div
+                className="glass-strong rounded-2xl p-4 text-center mb-4"
                 style={{ boxShadow: `0 0 40px -12px ${ACCENT}` }}
+                initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
               >
-                <p className="text-white leading-relaxed text-lg font-medium">
+                <p className="text-white leading-relaxed text-base sm:text-lg font-medium">
                   {question}
                 </p>
-              </div>
-              <p className="text-white/40 text-xs mb-6 text-center">
+              </motion.div>
+              <p className="text-white/40 text-xs mb-4 text-center">
                 Ask this question aloud — but don&apos;t reveal the words.
                 The group shouts a name. Then tap below.
               </p>
@@ -203,11 +214,11 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── ASKED ── */}
           {phase === "asked" && (
             <PhaseCard key="asked">
-              <div className="flex items-center gap-2 text-xs text-white/40 mb-4">
+              <div className="flex items-center gap-2 text-xs text-white/40 mb-3">
                 <EyeOff size={14} />
                 <span>Question is still secret</span>
               </div>
-              <p className="text-white/70 text-sm text-center mb-5">
+              <p className="text-white/70 text-sm text-center mb-4">
                 Who did <b style={{ color: asker.color }}>{asker.name}</b> point to?
               </p>
               <input
@@ -219,7 +230,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
                 className={cn(
                   "w-full rounded-xl px-4 py-3 text-white text-center",
                   "bg-white/10 border border-white/15 focus:border-[#ff2d95]",
-                  "outline-none placeholder:text-white/25 mb-5 text-sm",
+                  "outline-none placeholder:text-white/25 mb-4 text-sm",
                 )}
                 autoFocus
               />
@@ -237,16 +248,19 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── FLIP ── */}
           {phase === "flip" && (
             <PhaseCard key="flip">
-              <p className="text-white/60 text-sm text-center mb-1">
+              <p className="text-white/60 text-sm text-center mb-0.5">
                 The group pointed at
               </p>
-              <p
-                className="font-display text-2xl text-center mb-6"
+              <motion.p
+                className="font-display text-2xl text-center mb-3"
                 style={{ color: ACCENT }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
               >
                 {namedPerson}
-              </p>
-              <p className="text-white/60 text-sm text-center mb-8">
+              </motion.p>
+              <p className="text-white/60 text-sm text-center mb-5">
                 <b style={{ color: ACCENT }}>{namedPerson}</b>, do you dare
                 flip the coin?
                 <br />
@@ -256,29 +270,72 @@ function ParanoiaGame({ players }: { players: Player[] }) {
                 </span>
               </p>
 
-              {/* Coin */}
-              <div className="flex justify-center mb-8">
+              {/* Coin — 3D dual-face flip */}
+              <div className="flex justify-center mb-5" style={{ perspective: 800 }}>
+                {/* glow halo that pulses while spinning */}
                 <motion.div
-                  className="w-24 h-24 rounded-full flex items-center justify-center cursor-pointer select-none"
-                  style={{
-                    background: `radial-gradient(circle at 35% 35%, #ffe680, #c8a800)`,
-                    boxShadow: spinning
-                      ? `0 0 40px -6px ${ACCENT}, 0 4px 24px rgba(0,0,0,0.5)`
-                      : `0 0 20px -8px ${ACCENT}, 0 4px 12px rgba(0,0,0,0.4)`,
-                  }}
+                  className="relative w-20 h-20 sm:w-24 sm:h-24 cursor-pointer select-none"
+                  style={{ transformStyle: "preserve-3d" }}
                   animate={
                     spinning
-                      ? { rotateY: [0, 180, 360, 540, 720, 900, 1080], scale: [1, 1.1, 1] }
-                      : coinSide
-                      ? { rotateY: 0, scale: 1 }
-                      : { rotateY: 0, scale: 1 }
+                      ? {
+                          rotateY: [0, 360, 720, 1080, 1440, 1800],
+                          rotateX: [0, 12, -8, 6, 0],
+                          y: [0, -28, -10, -24, 0],
+                          scale: [1, 1.12, 1.06, 1.12, 1],
+                        }
+                      : coinSide === "tails"
+                      ? { rotateY: 180, rotateX: 0, y: 0, scale: 1 }
+                      : { rotateY: 0, rotateX: 0, y: 0, scale: 1 }
                   }
-                  transition={spinning ? { duration: 1.2, ease: "easeInOut" } : { duration: 0.3 }}
+                  transition={
+                    spinning
+                      ? { duration: 1.2, ease: [0.22, 0.7, 0.3, 1] }
+                      : { type: "spring", stiffness: 260, damping: 18 }
+                  }
                   onClick={!spinning && !coinSide ? flip : undefined}
                 >
-                  <span className="text-3xl" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>
-                    {coinSide === "heads" ? "H" : coinSide === "tails" ? "T" : "🪙"}
-                  </span>
+                  {/* HEADS face */}
+                  <div
+                    className="absolute inset-0 rounded-full flex items-center justify-center"
+                    style={{
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                      background:
+                        "radial-gradient(circle at 35% 30%, #fff0b0, #e8c200 55%, #b08800)",
+                      boxShadow: spinning
+                        ? `0 0 44px -4px ${ACCENT}, inset 0 0 14px rgba(255,255,255,0.5)`
+                        : `0 0 24px -8px ${ACCENT}, inset 0 0 12px rgba(255,255,255,0.4), 0 6px 16px rgba(0,0,0,0.45)`,
+                    }}
+                  >
+                    <span
+                      className="font-display text-2xl sm:text-3xl text-[#7a5c00]"
+                      style={{ textShadow: "0 1px 1px rgba(255,255,255,0.5)" }}
+                    >
+                      H
+                    </span>
+                  </div>
+                  {/* TAILS face (rotated 180°) */}
+                  <div
+                    className="absolute inset-0 rounded-full flex items-center justify-center"
+                    style={{
+                      transform: "rotateY(180deg)",
+                      backfaceVisibility: "hidden",
+                      WebkitBackfaceVisibility: "hidden",
+                      background:
+                        "radial-gradient(circle at 35% 30%, #ffe0a0, #d9b000 55%, #9c7400)",
+                      boxShadow: spinning
+                        ? `0 0 44px -4px #9d4edd, inset 0 0 14px rgba(255,255,255,0.5)`
+                        : `0 0 24px -8px #9d4edd, inset 0 0 12px rgba(255,255,255,0.4), 0 6px 16px rgba(0,0,0,0.45)`,
+                    }}
+                  >
+                    <span
+                      className="font-display text-2xl sm:text-3xl text-[#5c4a00]"
+                      style={{ textShadow: "0 1px 1px rgba(255,255,255,0.5)" }}
+                    >
+                      T
+                    </span>
+                  </div>
                 </motion.div>
               </div>
 
@@ -288,9 +345,13 @@ function ParanoiaGame({ players }: { players: Player[] }) {
                 </NeonButton>
               )}
               {spinning && (
-                <p className="text-white/50 text-sm text-center animate-pulse">
+                <motion.p
+                  className="text-white/50 text-sm text-center"
+                  animate={{ opacity: [0.4, 1, 0.4] }}
+                  transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
+                >
                   Flipping…
-                </p>
+                </motion.p>
               )}
             </PhaseCard>
           )}
@@ -298,20 +359,36 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── REVEALED ── */}
           {phase === "revealed" && (
             <PhaseCard key="revealed">
-              <div className="text-4xl mb-3 text-center">🪙</div>
-              <p className="font-display text-xl text-center mb-2" style={{ color: "#ffe066" }}>
+              <motion.div
+                className="text-4xl mb-2 text-center"
+                initial={{ rotateY: 0, scale: 0.6 }}
+                animate={{ rotateY: [0, 720], scale: [0.6, 1.25, 1] }}
+                transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              >
+                🪙
+              </motion.div>
+              <motion.p
+                className="font-display text-xl text-center mb-1.5"
+                style={{ color: "#ffe066" }}
+                initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 16, delay: 0.15 }}
+              >
                 HEADS — Revealed!
-              </p>
-              <p className="text-white/50 text-xs text-center mb-4">
+              </motion.p>
+              <p className="text-white/50 text-xs text-center mb-3">
                 The question was…
               </p>
-              <div
-                className="glass-strong rounded-2xl p-5 text-center mb-6"
+              <motion.div
+                className="glass-strong rounded-2xl p-4 text-center mb-4"
                 style={{ boxShadow: `0 0 48px -10px ${ACCENT}` }}
+                initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.25 }}
               >
-                <p className="text-white leading-relaxed">{question}</p>
-              </div>
-              <div className="flex justify-center mb-6">
+                <p className="text-white leading-relaxed text-sm sm:text-base">{question}</p>
+              </motion.div>
+              <div className="flex justify-center mb-4">
                 <DrinkCallout
                   text={`${namedPerson} drinks!`}
                   accent={ACCENT}
@@ -326,25 +403,38 @@ function ParanoiaGame({ players }: { players: Player[] }) {
           {/* ── SECRET ── */}
           {phase === "secret" && (
             <PhaseCard key="secret">
-              <div className="text-4xl mb-3 text-center">🤫</div>
-              <p
-                className="font-display text-xl text-center mb-2"
+              <motion.div
+                className="text-4xl mb-2 text-center"
+                initial={{ scale: 0.6, rotate: -12 }}
+                animate={{ scale: 1, rotate: [-12, 8, -4, 0] }}
+                transition={{ type: "spring", stiffness: 300, damping: 14 }}
+              >
+                🤫
+              </motion.div>
+              <motion.p
+                className="font-display text-xl text-center mb-1.5"
                 style={{ color: "#9d4edd" }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
               >
                 TAILS — Stays secret!
-              </p>
-              <p className="text-white/50 text-xs text-center mb-6">
+              </motion.p>
+              <p className="text-white/50 text-xs text-center mb-4">
                 The question is gone forever. Only{" "}
                 <b style={{ color: asker.color }}>{asker.name}</b> knows.
               </p>
-              <div
-                className="glass rounded-2xl p-4 text-center mb-6 border border-white/10"
+              <motion.div
+                className="glass rounded-2xl p-4 text-center mb-4 border border-white/10"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
               >
                 <p className="text-white/30 text-sm blur-sm select-none">
                   {question}
                 </p>
                 <p className="text-white/20 text-xs mt-2">redacted</p>
-              </div>
+              </motion.div>
               <NeonButton onClick={nextRound} size="lg" variant="primary">
                 Next round →
               </NeonButton>
@@ -358,7 +448,7 @@ function ParanoiaGame({ players }: { players: Player[] }) {
       {roundCount > 1 && (
         <button
           onClick={resetGame}
-          className="mt-10 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
+          className="mt-3 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
         >
           <RotateCcw size={13} /> restart game
         </button>
@@ -374,8 +464,8 @@ function PhaseCard({ children }: { children: React.ReactNode }) {
       initial={{ opacity: 0, y: 20, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -16, scale: 0.97 }}
-      transition={{ duration: 0.28, ease: "easeOut" }}
-      className="glass-strong rounded-3xl p-6 flex flex-col items-center text-center"
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      className="glass-strong rounded-3xl p-5 sm:p-6 flex flex-col items-center text-center"
       style={{ boxShadow: "0 0 60px -20px #ff2d95" }}
     >
       {children}

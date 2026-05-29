@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Lightbulb, RotateCcw } from "lucide-react";
-import { CircleProgress, DrinkCallout, GameHeading, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
+import { CircleProgress, DrinkCallout, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { drinkRain, pop } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
@@ -92,45 +92,62 @@ function TwoTruths({ players }: { players: Player[] }) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto px-2">
-      <GameHeading
-        title="Two Truths & a Lie"
-        subtitle="Tell two truths and one lie — can the group spot it?"
-        accent={ACCENT}
-      />
+      <p className="text-white/50 text-sm text-center mb-3">
+        Tell two truths and one lie — can the group spot it?
+      </p>
 
       {/* Player chips row */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <motion.div layout className="flex flex-wrap justify-center gap-2 mb-3">
         {players.map((p, i) => (
-          <PlayerChip
-            key={p.id}
-            player={p}
-            active={i === turnIndex % players.length}
-          />
+          <motion.div key={p.id} layout transition={{ type: "spring", stiffness: 320, damping: 26 }}>
+            <PlayerChip
+              player={p}
+              active={i === turnIndex % players.length}
+            />
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       {/* Main prompt card */}
       <AnimatePresence mode="wait">
         <motion.div
           key={currentPlayer.id + String(turnIndex)}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ type: "spring", stiffness: 260, damping: 22 }}
-          className="glass-strong rounded-3xl p-6 w-full mb-6 text-center"
+          initial={{ opacity: 0, y: 24, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 300, damping: 24 }}
+          className="glass-strong rounded-3xl p-4 sm:p-5 w-full mb-3 text-center"
           style={{ boxShadow: `0 0 44px -12px ${ACCENT}` }}
         >
-          <p className="text-white/55 text-sm mb-1">It&apos;s</p>
-          <p className="font-display text-2xl sm:text-3xl mb-1" style={{ color: currentPlayer.color }}>
+          <motion.p
+            className="text-white/55 text-xs sm:text-sm mb-0.5"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.08 }}
+          >
+            It&apos;s
+          </motion.p>
+          <motion.p
+            className="font-display text-2xl sm:text-3xl mb-1"
+            style={{ color: currentPlayer.color }}
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", stiffness: 340, damping: 18, delay: 0.1 }}
+          >
             {currentPlayer.name}
-          </p>
-          <p className="text-white/55 text-sm mb-5">
+          </motion.p>
+          <motion.p
+            className="text-white/55 text-xs sm:text-sm mb-3 sm:mb-4"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          >
             Tell the group <span className="text-white font-semibold">two truths</span> and{" "}
             <span style={{ color: ACCENT }} className="font-semibold">one lie</span>.
-          </p>
+          </motion.p>
 
           {/* Timer ring */}
-          <div className="flex flex-col items-center gap-3">
+          <div className="flex flex-col items-center gap-2.5">
             <CircleProgress
               fraction={timerPercent / 100}
               size={60}
@@ -138,12 +155,16 @@ function TwoTruths({ players }: { players: Player[] }) {
               color={timeLeft <= 5 ? "#ff5e5b" : ACCENT}
               tween={0.9}
             >
-              <span
+              <motion.span
+                key={timeLeft}
+                initial={{ scale: 1.4, opacity: 0.4 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
                 className="text-lg font-display tabular-nums"
                 style={{ color: timeLeft <= 5 ? "#ff5e5b" : "rgba(255,255,255,0.8)" }}
               >
                 {timeLeft}
-              </span>
+              </motion.span>
             </CircleProgress>
 
             {!timerActive && timeLeft === TIMER_SECONDS ? (
@@ -170,7 +191,7 @@ function TwoTruths({ players }: { players: Player[] }) {
       </AnimatePresence>
 
       {/* Need ideas expandable */}
-      <div className="w-full mb-6">
+      <div className="w-full mb-3">
         <button
           onClick={() => {
             sfx.click();
@@ -248,25 +269,41 @@ function TwoTruths({ players }: { players: Player[] }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="flex flex-col items-center gap-5 w-full"
+            className="flex flex-col items-center gap-3 w-full"
           >
-            {outcome === "liar" ? (
-              <DrinkCallout
-                text={`${currentPlayer.name} drinks!`}
-                accent={currentPlayer.color}
-              />
-            ) : (
-              <DrinkCallout
-                text="Everyone drinks!"
-                accent={ACCENT}
-              />
-            )}
+            <motion.div
+              key={outcome}
+              animate={
+                outcome === "liar"
+                  ? { x: [0, -10, 10, -6, 6, 0] }
+                  : { scale: [1, 1.14, 0.97, 1] }
+              }
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="w-full flex justify-center"
+            >
+              {outcome === "liar" ? (
+                <DrinkCallout
+                  text={`${currentPlayer.name} drinks!`}
+                  accent={currentPlayer.color}
+                />
+              ) : (
+                <DrinkCallout
+                  text="Everyone drinks!"
+                  accent={ACCENT}
+                />
+              )}
+            </motion.div>
 
-            <p className="text-white/50 text-sm text-center">
+            <motion.p
+              className="text-white/50 text-sm text-center"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            >
               {outcome === "liar"
                 ? "The group saw right through it."
                 : `${currentPlayer.name} fooled the whole room!`}
-            </p>
+            </motion.p>
 
             <NeonButton onClick={nextPlayer} size="lg" variant="success">
               Next player →

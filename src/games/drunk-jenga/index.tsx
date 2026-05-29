@@ -6,7 +6,6 @@ import { RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -139,15 +138,18 @@ function JengaGame({ players }: { players: Player[] }) {
   const pct = Math.round(collapseProbability(remaining) * 100);
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Drunk Jenga"
-        subtitle="Pull a block — do the dare or take a drink. Don't let it fall!"
-        accent={ACCENT}
-      />
+    <motion.div
+      className="flex flex-col items-center w-full"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-white/50 text-xs sm:text-sm text-center mb-2 sm:mb-3">
+        Pull a block — do the dare or take a drink. Don&apos;t let it fall!
+      </p>
 
       {/* Player turn strip */}
-      <div className="flex flex-wrap justify-center gap-2 mb-5">
+      <motion.div layout className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
         {players.map((p, i) => (
           <PlayerChip
             key={p.id}
@@ -155,25 +157,36 @@ function JengaGame({ players }: { players: Player[] }) {
             active={!collapsed && i === turnIdx % players.length}
           />
         ))}
-      </div>
+      </motion.div>
 
-      {!collapsed && (
-        <p className="text-sm text-white/55 mb-4">
-          <span style={{ color: currentPlayer.color }} className="font-semibold">
-            {currentPlayer.name}
-          </span>
-          &apos;s turn — pull a block
-        </p>
-      )}
+      <div className="h-5 mb-1 sm:mb-2 flex items-center">
+        <AnimatePresence mode="wait">
+          {!collapsed && (
+            <motion.p
+              key={currentPlayer.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+              className="text-xs sm:text-sm text-white/55"
+            >
+              <span style={{ color: currentPlayer.color }} className="font-semibold">
+                {currentPlayer.name}
+              </span>
+              &apos;s turn — pull a block
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Tower */}
       <motion.div
         animate={towerControls}
-        className="relative mb-6"
+        className="relative mb-3 sm:mb-4"
         style={{ originX: "50%", originY: "100%" }}
       >
         <div
-          className="flex flex-col-reverse gap-[3px]"
+          className="flex flex-col-reverse gap-[2px] sm:gap-[3px]"
           style={{
             filter: collapsed ? "none" : `drop-shadow(0 0 ${6 + wobbleDeg}px ${ACCENT}55)`,
           }}
@@ -188,16 +201,19 @@ function JengaGame({ players }: { players: Player[] }) {
                   <motion.div
                     key={`block-${i}`}
                     layout
-                    initial={{ opacity: 1, x: 0 }}
+                    initial={{ opacity: 0, scale: 0.6 }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      transition: { type: "spring", stiffness: 320, damping: 22, delay: i * 0.025 },
+                    }}
                     exit={
                       beingPulled
-                        ? { x: rowIndex % 2 === 0 ? 140 : -140, opacity: 0, transition: { duration: 0.38 } }
+                        ? { x: rowIndex % 2 === 0 ? 140 : -140, opacity: 0, rotate: rowIndex % 2 === 0 ? 8 : -8, transition: { duration: 0.38, ease: [0.16, 1, 0.3, 1] } }
                         : { opacity: 0, transition: { duration: 0.15 } }
                     }
-                    className="rounded-sm"
+                    className="rounded-sm w-[120px] h-[14px] sm:w-[160px] sm:h-[18px]"
                     style={{
-                      width: 160,
-                      height: 20,
                       background: `linear-gradient(90deg, ${ACCENT}22, ${ACCENT}44, ${ACCENT}22)`,
                       border: `1px solid ${ACCENT}66`,
                       boxShadow: beingPulled ? `0 0 18px -2px ${ACCENT}` : undefined,
@@ -214,10 +230,19 @@ function JengaGame({ players }: { players: Player[] }) {
 
       {/* Danger meter */}
       {!collapsed && (
-        <div className="w-48 mb-5">
-          <div className="flex justify-between text-xs text-white/40 mb-1">
+        <div className="w-44 sm:w-48 mb-3 sm:mb-4">
+          <div className="flex justify-between text-[10px] sm:text-xs text-white/40 mb-1">
             <span>Collapse risk</span>
-            <span style={{ color: pct > 40 ? "#ff5e5b" : ACCENT }}>{pct}%</span>
+            <motion.span
+              key={pct}
+              initial={{ scale: 1.5, opacity: 0.5 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="inline-block tabular-nums font-semibold"
+              style={{ color: pct > 40 ? "#ff5e5b" : ACCENT }}
+            >
+              {pct}%
+            </motion.span>
           </div>
           <div className="h-2 rounded-full glass overflow-hidden">
             <motion.div
@@ -235,19 +260,26 @@ function JengaGame({ players }: { players: Player[] }) {
         </div>
       )}
 
-      {/* Dare reveal */}
-      <div className="min-h-[7rem] w-full max-w-sm mb-4">
+      {/* Dare reveal — fixed compact slot; collapse callout overlays larger */}
+      <div className="relative min-h-[5rem] sm:min-h-[6rem] w-full max-w-sm mb-3 sm:mb-4 flex items-center justify-center">
         <AnimatePresence mode="wait">
           {collapsed && puller ? (
             <motion.div
               key="collapsed"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.85, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="glass-strong rounded-3xl p-6 text-center"
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="glass-strong rounded-3xl p-4 sm:p-6 text-center w-full"
               style={{ boxShadow: `0 0 60px -12px #ff5e5b` }}
             >
-              <div className="text-5xl mb-3">💥</div>
+              <motion.div
+                className="text-4xl sm:text-5xl mb-2 sm:mb-3"
+                animate={{ rotate: [0, -10, 10, -6, 6, 0], scale: [1, 1.15, 1] }}
+                transition={{ duration: 0.6 }}
+              >
+                💥
+              </motion.div>
               <DrinkCallout
                 text={`Tower fell — ${puller.name} drinks big!`}
                 accent="#ff5e5b"
@@ -256,22 +288,31 @@ function JengaGame({ players }: { players: Player[] }) {
           ) : dare ? (
             <motion.div
               key={`dare-${dare}`}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 16, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10 }}
-              className="glass-strong rounded-3xl p-5 text-center"
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="glass-strong rounded-3xl p-4 sm:p-5 text-center w-full"
               style={{ boxShadow: `0 0 36px -14px ${ACCENT}` }}
             >
-              <div className="text-3xl mb-2">🧱</div>
-              <p className="text-white/90 leading-snug font-medium">{dare}</p>
-              <p className="text-white/40 text-xs mt-2">Do it — or take a drink.</p>
+              <motion.div
+                className="text-2xl sm:text-3xl mb-1.5 sm:mb-2"
+                initial={{ scale: 0, rotate: -30 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 360, damping: 14, delay: 0.08 }}
+              >
+                🧱
+              </motion.div>
+              <p className="text-white/90 leading-snug font-medium text-sm sm:text-base">{dare}</p>
+              <p className="text-white/40 text-xs mt-1.5 sm:mt-2">Do it — or take a drink.</p>
             </motion.div>
           ) : (
             <motion.p
               key="hint"
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.4 }}
-              className="text-center text-white/40 pt-6"
+              exit={{ opacity: 0 }}
+              className="text-center text-white/40 text-sm"
             >
               {remaining} blocks remaining — pull one to reveal a dare.
             </motion.p>
@@ -303,10 +344,19 @@ function JengaGame({ players }: { players: Player[] }) {
 
       {/* Block count footer */}
       {!collapsed && (
-        <p className="mt-6 text-xs text-white/25">
-          {remaining}/{TOTAL_BLOCKS} blocks standing
+        <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-white/25">
+          <motion.span
+            key={remaining}
+            initial={{ scale: 1.4, opacity: 0.6 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="inline-block tabular-nums"
+          >
+            {remaining}
+          </motion.span>
+          /{TOTAL_BLOCKS} blocks standing
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }

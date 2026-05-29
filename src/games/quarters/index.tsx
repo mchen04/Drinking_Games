@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -194,27 +193,49 @@ function QuartersGame({ players }: { players: Player[] }) {
   }
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <GameHeading
-        title="Quarters"
-        subtitle="Lock the power when the meter hits the sweet spot — bounce it in!"
-        accent={ACCENT}
-      />
+    <motion.div
+      className="flex flex-col items-center select-none w-full"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-white/50 text-sm text-center mb-3 max-w-xs">
+        Lock the power when the meter hits the sweet spot — bounce it in!
+      </p>
 
       {/* Player turn strip */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
-        {players.map((p, i) => (
-          <PlayerChip
-            key={p.id}
-            player={p}
-            active={i === turn % players.length}
-          />
-        ))}
-      </div>
+      <motion.div layout className="flex flex-wrap justify-center gap-2 mb-3">
+        <AnimatePresence initial={false}>
+          {players.map((p, i) => (
+            <motion.div
+              key={p.id}
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            >
+              <PlayerChip player={p} active={i === turn % players.length} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Shooter label */}
-      <p className="text-white/60 text-sm mb-4">
-        <b style={{ color: shooter.color }}>{shooter.name}</b>&apos;s shot
+      <p className="text-white/60 text-sm mb-3 h-5 flex items-center">
+        <AnimatePresence mode="wait">
+          <motion.b
+            key={shooter.id}
+            initial={{ opacity: 0, scale: 1.35, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 340, damping: 22 }}
+            style={{ color: shooter.color, display: "inline-block" }}
+          >
+            {shooter.name}
+          </motion.b>
+        </AnimatePresence>
+        <span className="ml-1">&apos;s shot</span>
       </p>
 
       {/* ── PLAY AREA ── */}
@@ -222,14 +243,22 @@ function QuartersGame({ players }: { players: Player[] }) {
         {/* Cup + table */}
         <div className="relative flex justify-end pr-8 mb-2">
           {/* Cup */}
-          <div
+          <motion.div
             className="relative w-14 h-16 rounded-b-2xl rounded-t-sm border-2 overflow-hidden"
             style={{ borderColor: `${ACCENT}80` }}
+            animate={
+              phase === "made" || phase === "assigned"
+                ? { scale: [1, 1.12, 1], boxShadow: `0 0 24px -4px ${ACCENT}` }
+                : { scale: 1, boxShadow: `0 0 0px ${ACCENT}` }
+            }
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* liquid inside cup */}
-            <div
+            <motion.div
               className="absolute bottom-0 left-0 right-0 h-3/5 rounded-b-2xl opacity-60"
               style={{ background: `linear-gradient(180deg, ${ACCENT}60, ${ACCENT}aa)` }}
+              animate={phase === "made" ? { y: [0, -3, 1, 0] } : { y: 0 }}
+              transition={{ duration: 0.45 }}
             />
             <span className="absolute inset-0 flex items-start justify-center pt-1 text-xl leading-none">
               🥃
@@ -242,35 +271,54 @@ function QuartersGame({ players }: { players: Player[] }) {
             >
               💦
             </motion.div>
-          </div>
+          </motion.div>
+
+          {/* Splash ripple ring (bursts outward on a make) */}
+          <motion.div
+            animate={splashControls}
+            initial={{ opacity: 0, scale: 0 }}
+            className="absolute right-[1.85rem] top-1 w-14 h-16 rounded-full border-2 pointer-events-none"
+            style={{ borderColor: ACCENT, filter: `drop-shadow(0 0 8px ${ACCENT})` }}
+          />
         </div>
 
         {/* Table surface */}
-        <div
+        <motion.div
           className="absolute bottom-0 left-0 right-0 h-2 rounded-full opacity-40"
           style={{ background: ACCENT }}
+          animate={phase === "missed" ? { x: [0, -6, 6, -3, 0] } : { x: 0 }}
+          transition={{ duration: 0.35 }}
         />
 
         {/* Coin arc area */}
         <div className="relative h-28 flex items-end pl-8">
           {/* Launch position marker */}
-          <div
+          <motion.div
             className="w-4 h-4 rounded-full border-2 mb-3 opacity-40 flex-shrink-0"
             style={{ borderColor: ACCENT }}
+            animate={phase === "idle" ? { scale: [1, 1.25, 1] } : { scale: 1 }}
+            transition={{ duration: 1.4, repeat: phase === "idle" ? Infinity : 0, ease: "easeInOut" }}
           />
 
           {/* Animated quarter */}
           <motion.div
             animate={coinControls}
             className="absolute left-8 bottom-3 text-2xl leading-none cursor-default z-10"
+            style={{ filter: "drop-shadow(0 3px 6px rgba(0,0,0,0.5))" }}
           >
-            🪙
+            <motion.span
+              className="inline-block"
+              animate={phase === "idle" ? { y: [0, -4, 0] } : { y: 0 }}
+              transition={{ duration: 1.6, repeat: phase === "idle" ? Infinity : 0, ease: "easeInOut" }}
+            >
+              🪙
+            </motion.span>
           </motion.div>
         </div>
       </div>
 
       {/* ── POWER METER ── */}
-      <div className="w-full max-w-xs mt-6 mb-1">
+      <div className="w-full max-w-xs mt-3 mb-1">
         <div className="flex justify-between text-xs text-white/40 mb-1">
           <span>weak</span>
           <span className="text-xs" style={{ color: ACCENT }}>
@@ -323,7 +371,7 @@ function QuartersGame({ players }: { players: Player[] }) {
       </div>
 
       {/* ── OUTCOME PANEL ── */}
-      <div className="min-h-[7rem] w-full max-w-sm mt-5 flex flex-col items-center justify-center">
+      <div className="min-h-[6rem] w-full max-w-sm mt-3 flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {phase === "idle" && (
             <motion.div
@@ -355,16 +403,23 @@ function QuartersGame({ players }: { players: Player[] }) {
           {phase === "made" && (
             <motion.div
               key="made"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="glass-strong rounded-3xl p-5 w-full text-center"
+              initial={{ opacity: 0, scale: 0.82, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="glass-strong rounded-3xl p-4 w-full text-center"
               style={{ boxShadow: `0 0 40px -10px ${ACCENT}` }}
             >
-              <p className="font-display text-xl mb-1" style={{ color: ACCENT }}>
+              <motion.p
+                className="font-display text-xl mb-1"
+                style={{ color: ACCENT }}
+                initial={{ scale: 1.4 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 14 }}
+              >
                 🎯 Made it!
-              </p>
-              <p className="text-white/60 text-sm mb-4">
+              </motion.p>
+              <p className="text-white/60 text-sm mb-3">
                 Assign a drink — then shoot again!
               </p>
               <div className="flex flex-wrap justify-center gap-2">
@@ -411,15 +466,16 @@ function QuartersGame({ players }: { players: Player[] }) {
             <motion.div
               key="missed"
               initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: 1, scale: 1, x: [0, -10, 10, -6, 6, 0] }}
               exit={{ opacity: 0 }}
-              className="glass-strong rounded-3xl p-5 w-full text-center"
+              transition={{ type: "spring", stiffness: 280, damping: 20, x: { duration: 0.45 } }}
+              className="glass-strong rounded-3xl p-4 w-full text-center"
               style={{ boxShadow: "0 0 40px -14px #ff5e5b" }}
             >
               <p className="font-display text-xl text-white/90 mb-1">
                 😬 Missed!
               </p>
-              <p className="text-white/55 text-sm mb-4">
+              <p className="text-white/55 text-sm mb-3">
                 Pass the cup to{" "}
                 <b style={{ color: players[(turn + 1) % players.length].color }}>
                   {players[(turn + 1) % players.length].name}
@@ -434,25 +490,52 @@ function QuartersGame({ players }: { players: Player[] }) {
       </div>
 
       {/* ── STATS ── */}
-      <div className="mt-6 flex items-center gap-5 text-sm text-white/50">
+      <div className="mt-3 flex items-center gap-5 text-sm text-white/50">
         <span>
-          makes <b className="text-white">{makes}</b>
+          makes{" "}
+          <motion.b
+            key={`makes-${makes}`}
+            className="text-white inline-block"
+            initial={{ scale: 1.5 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 16 }}
+          >
+            {makes}
+          </motion.b>
         </span>
         <span>
           streak{" "}
-          <b style={{ color: ACCENT }}>{streak}</b>
+          <motion.b
+            key={`streak-${streak}`}
+            className="inline-block"
+            style={{ color: ACCENT }}
+            initial={{ scale: 1.5 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 16 }}
+          >
+            {streak}
+          </motion.b>
         </span>
         <span>
-          best <b className="text-neon-amber">{bestStreak}</b>
+          best{" "}
+          <motion.b
+            key={`best-${bestStreak}`}
+            className="text-neon-amber inline-block"
+            initial={{ scale: 1.5 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 16 }}
+          >
+            {bestStreak}
+          </motion.b>
         </span>
       </div>
 
       <button
         onClick={resetGame}
-        className="mt-5 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> reset game
       </button>
-    </div>
+    </motion.div>
   );
 }

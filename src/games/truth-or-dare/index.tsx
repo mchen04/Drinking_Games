@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useRef, useCallback } from "react";
 import { RotateCcw } from "lucide-react";
-import { NeonButton, GameHeading, DrinkCallout, PlayerChip, RequirePlayers } from "@/components/ui";
+import { NeonButton, DrinkCallout, PlayerChip, RequirePlayers } from "@/components/ui";
 import { usePlayers, type Player } from "@/store/players";
 import { createDealer } from "@/lib/random";
 import { useTimeouts } from "@/lib/timers";
@@ -96,23 +96,28 @@ function GameBoard({ players }: { players: Player[] }) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto px-4">
-      <GameHeading
-        title="Truth or Dare"
-        subtitle="Pick your poison. Chicken out and take a drink."
-        accent={ACCENT}
-      />
+      <p className="text-white/50 text-sm text-center mb-3">
+        Pick your poison. Chicken out and take a drink.
+      </p>
 
       {/* Player turn indicator */}
       {hasPlayers && (
-        <div className="flex flex-wrap justify-center gap-2 mb-6">
-          {players.map((p, i) => (
-            <PlayerChip
-              key={p.id}
-              player={p}
-              active={i === turnIndex % players.length}
-            />
-          ))}
-        </div>
+        <motion.div layout className="flex flex-wrap justify-center gap-2 mb-3">
+          <AnimatePresence initial={false}>
+            {players.map((p, i) => (
+              <motion.span
+                key={p.id}
+                layout
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ type: "spring", stiffness: 320, damping: 24 }}
+              >
+                <PlayerChip player={p} active={i === turnIndex % players.length} />
+              </motion.span>
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
       {/* Current player label */}
@@ -123,7 +128,7 @@ function GameBoard({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-white/60 text-sm mb-6 text-center"
+            className="text-white/60 text-sm mb-4 text-center"
           >
             <b style={{ color: currentPlayer.color }}>{currentPlayer.name}</b>
             &apos;s turn — choose wisely
@@ -142,11 +147,17 @@ function GameBoard({ players }: { players: Player[] }) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ type: "spring", stiffness: 280, damping: 22 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center"
+              style={{ perspective: 1000 }}
             >
               {/* Truth — cyan glow wrapper since NeonButton has no style prop */}
-              <div
-                className="flex-1 sm:flex-none sm:min-w-[160px] rounded-2xl"
+              <motion.div
+                initial={{ opacity: 0, rotateY: -90, y: 14 }}
+                animate={{ opacity: 1, rotateY: 0, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.05 }}
+                whileHover={{ y: -4, rotateX: 6 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex-1 sm:flex-none sm:min-w-[160px] rounded-2xl [transform-style:preserve-3d]"
                 style={{ boxShadow: `0 0 28px -8px ${CYAN}` }}
               >
                 <NeonButton
@@ -157,10 +168,17 @@ function GameBoard({ players }: { players: Player[] }) {
                 >
                   💬 Truth
                 </NeonButton>
-              </div>
+              </motion.div>
 
               {/* Dare */}
-              <div className="flex-1 sm:flex-none sm:min-w-[160px]">
+              <motion.div
+                initial={{ opacity: 0, rotateY: 90, y: 14 }}
+                animate={{ opacity: 1, rotateY: 0, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 24, delay: 0.12 }}
+                whileHover={{ y: -4, rotateX: 6 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex-1 sm:flex-none sm:min-w-[160px] [transform-style:preserve-3d]"
+              >
                 <NeonButton
                   variant="danger"
                   size="lg"
@@ -169,7 +187,7 @@ function GameBoard({ players }: { players: Player[] }) {
                 >
                   🔥 Dare
                 </NeonButton>
-              </div>
+              </motion.div>
             </motion.div>
           )}
 
@@ -183,10 +201,13 @@ function GameBoard({ players }: { players: Player[] }) {
               transition={{ type: "spring", stiffness: 260, damping: 22 }}
               className="w-full"
             >
-              {/* Type badge */}
-              <div className="flex justify-center mb-3">
-                <span
-                  className="text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full"
+              {/* Type badge — coin-flips in on reveal */}
+              <div className="flex justify-center mb-3" style={{ perspective: 800 }}>
+                <motion.span
+                  initial={{ rotateY: -540, scale: 0.6, opacity: 0 }}
+                  animate={{ rotateY: 0, scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 16 }}
+                  className="text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full [transform-style:preserve-3d]"
                   style={
                     pickType === "truth"
                       ? {
@@ -202,51 +223,57 @@ function GameBoard({ players }: { players: Player[] }) {
                   }
                 >
                   {pickType === "truth" ? "💬 Truth" : "🔥 Dare"}
-                </span>
+                </motion.span>
               </div>
 
-              {/* Prompt glass card */}
-              <div
-                className="glass-strong rounded-3xl p-6 sm:p-8 text-center mb-6"
+              {/* Prompt glass card — shakes when the player chickens out */}
+              <motion.div
+                animate={showDrink ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
+                transition={{ duration: 0.5 }}
+                className="glass-strong rounded-3xl p-5 sm:p-6 text-center mb-4"
                 style={cardGlow}
               >
-                <p className="text-white text-lg sm:text-xl leading-relaxed font-medium">
+                <p className="text-white text-base sm:text-lg leading-relaxed font-medium">
                   {prompt}
                 </p>
-              </div>
+              </motion.div>
 
-              {/* Drink callout */}
-              <div className="flex justify-center min-h-[3.5rem] mb-4">
-                <AnimatePresence>
-                  {showDrink && (
-                    <DrinkCallout
-                      text={
-                        currentPlayer
-                          ? `${currentPlayer.name}, drink up! 🍺`
-                          : "Drink up! 🍺"
-                      }
-                      accent={ACCENT}
-                    />
+              {/* Action area — drink callout overlays the buttons (no reserved block) */}
+              <div className="relative flex justify-center min-h-[3rem]">
+                <AnimatePresence mode="wait">
+                  {showDrink ? (
+                    <motion.div
+                      key="drink"
+                      className="absolute inset-0 flex justify-center"
+                    >
+                      <DrinkCallout
+                        text={
+                          currentPlayer
+                            ? `${currentPlayer.name}, drink up! 🍺`
+                            : "Drink up! 🍺"
+                        }
+                        accent={ACCENT}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="actions"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ delay: 0.12 }}
+                      className="flex flex-col sm:flex-row gap-3 justify-center"
+                    >
+                      <NeonButton variant="success" size="md" onClick={handleDidIt}>
+                        Did it / Answered 😎
+                      </NeonButton>
+                      <NeonButton variant="danger" size="md" onClick={handleChicken}>
+                        Chicken — drink 🍺
+                      </NeonButton>
+                    </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Action buttons (hidden while drink callout is showing) */}
-              {!showDrink && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="flex flex-col sm:flex-row gap-3 justify-center"
-                >
-                  <NeonButton variant="success" size="md" onClick={handleDidIt}>
-                    Did it / Answered 😎
-                  </NeonButton>
-                  <NeonButton variant="danger" size="md" onClick={handleChicken}>
-                    Chicken — drink 🍺
-                  </NeonButton>
-                </motion.div>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -255,7 +282,7 @@ function GameBoard({ players }: { players: Player[] }) {
       {/* Reset */}
       <button
         onClick={resetGame}
-        className="mt-10 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
+        className="mt-5 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
       >
         <RotateCcw size={13} /> new game
       </button>

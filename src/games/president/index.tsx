@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, RotateCcw, Shuffle } from "lucide-react";
-import { NeonButton, RequirePlayers, GameHeading, PlayerChip, DrinkCallout } from "@/components/ui";
+import { NeonButton, RequirePlayers, PlayerChip, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { sfx } from "@/lib/sound";
 import { useTimeouts } from "@/lib/timers";
@@ -108,17 +108,15 @@ function PresidentGame({ players }: { players: Player[] }) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto">
-      <GameHeading
-        title="President & Scum"
-        subtitle="Play a hand with real cards, then tap players in finishing order."
-        accent={ACCENT}
-      />
+      <p className="text-white/50 text-sm text-center mb-3">
+        Play a hand with real cards, then tap players in finishing order.
+      </p>
 
       {/* How to Play collapsible */}
-      <div className="w-full mb-6">
+      <div className="w-full mb-3">
         <button
           onClick={() => { sfx.click(); setRulesOpen((o) => !o); }}
-          className="w-full flex items-center justify-between glass rounded-2xl px-4 py-3 text-sm text-white/70 hover:text-white transition-colors"
+          className="w-full flex items-center justify-between glass rounded-2xl px-4 py-2.5 text-sm text-white/70 hover:text-white transition-colors"
         >
           <span className="font-semibold">How to Play</span>
           {rulesOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
@@ -134,7 +132,7 @@ function PresidentGame({ players }: { players: Player[] }) {
               transition={{ duration: 0.25 }}
               className="overflow-hidden"
             >
-              <div className="glass rounded-2xl mt-1 px-4 py-4 space-y-3">
+              <div className="glass rounded-2xl mt-1 px-4 py-3 space-y-2.5 max-h-[40vh] overflow-y-auto">
                 {RULES_SECTIONS.map((s) => (
                   <div key={s.heading}>
                     <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{ color: ACCENT }}>
@@ -157,38 +155,62 @@ function PresidentGame({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="w-full flex flex-col items-center gap-4"
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="w-full flex flex-col items-center gap-3"
           >
             {/* Progress strip */}
-            <div className="flex items-center gap-2 text-sm text-white/50 mb-1">
-              <span>{finishOrder.length} / {players.length} tapped</span>
+            <div className="flex items-center gap-2 text-sm text-white/50">
+              <span className="tabular-nums">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.span
+                    key={finishOrder.length}
+                    initial={{ scale: 1.5, opacity: 0, y: -4 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.6, opacity: 0, y: 4 }}
+                    transition={{ type: "spring", stiffness: 340, damping: 22 }}
+                    className="inline-block font-bold"
+                    style={{ color: ACCENT }}
+                  >
+                    {finishOrder.length}
+                  </motion.span>
+                </AnimatePresence>
+                {" "}/ {players.length} tapped
+              </span>
               {finishOrder.length > 0 && (
-                <button
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={undoLast}
                   className="flex items-center gap-1 text-xs text-white/30 hover:text-white/70 transition-colors ml-2"
                 >
                   <RotateCcw size={12} /> undo
-                </button>
+                </motion.button>
               )}
             </div>
 
             {/* Already-tapped mini list */}
             {finishOrder.length > 0 && (
-              <div className="flex flex-wrap gap-2 justify-center mb-2">
-                {finishOrder.map((p, i) => (
-                  <motion.div
-                    key={p.id}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center gap-1.5 glass rounded-full px-3 py-1.5 text-xs"
-                    style={{ borderColor: `${p.color}44` }}
-                  >
-                    <span className="font-bold text-white/40">#{i + 1}</span>
-                    <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-                    <span className="text-white/80">{p.name}</span>
-                  </motion.div>
-                ))}
-              </div>
+              <motion.div layout className="flex flex-wrap gap-2 justify-center">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {finishOrder.map((p, i) => (
+                    <motion.div
+                      key={p.id}
+                      layout
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 320, damping: 24 }}
+                      className="flex items-center gap-1.5 glass rounded-full px-3 py-1.5 text-xs"
+                      style={{ borderColor: `${p.color}44` }}
+                    >
+                      <span className="font-bold text-white/40">#{i + 1}</span>
+                      <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
+                      <span className="text-white/80">{p.name}</span>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
 
             {/* Roster of remaining players */}
@@ -198,26 +220,32 @@ function PresidentGame({ players }: { players: Player[] }) {
                 : "All players tapped — revealing roles…"}
             </p>
 
-            <div className="flex flex-wrap gap-3 justify-center">
-              {remaining.map((player) => (
-                <motion.button
-                  key={player.id}
-                  whileHover={{ scale: 1.06, y: -2 }}
-                  whileTap={{ scale: 0.94 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                  onClick={() => tapPlayer(player)}
-                  className="flex items-center gap-2.5 rounded-2xl px-5 py-3 font-semibold text-white border transition-colors"
-                  style={{
-                    background: `${player.color}22`,
-                    borderColor: `${player.color}66`,
-                    boxShadow: `0 0 18px -6px ${player.color}`,
-                  }}
-                >
-                  <span className="w-3 h-3 rounded-full" style={{ background: player.color }} />
-                  {player.name}
-                </motion.button>
-              ))}
-            </div>
+            <motion.div layout className="flex flex-wrap gap-2.5 justify-center">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {remaining.map((player) => (
+                  <motion.button
+                    key={player.id}
+                    layout
+                    initial={{ scale: 0.6, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.4, opacity: 0, y: -8 }}
+                    whileHover={{ scale: 1.06, y: -2 }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={{ type: "spring", stiffness: 340, damping: 22 }}
+                    onClick={() => tapPlayer(player)}
+                    className="flex items-center gap-2.5 rounded-2xl px-5 py-2.5 font-semibold text-white border transition-colors"
+                    style={{
+                      background: `${player.color}22`,
+                      borderColor: `${player.color}66`,
+                      boxShadow: `0 0 18px -6px ${player.color}`,
+                    }}
+                  >
+                    <span className="w-3 h-3 rounded-full" style={{ background: player.color }} />
+                    {player.name}
+                  </motion.button>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           </motion.div>
         )}
 
@@ -228,27 +256,45 @@ function PresidentGame({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -16 }}
-            className="w-full flex flex-col items-center gap-4"
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            className="w-full flex flex-col items-center gap-3"
           >
-            <p className="text-white/50 text-sm text-center mb-2">
+            <p className="text-white/50 text-sm text-center">
               Hand complete — here are the standings
             </p>
 
-            {/* Roles list */}
-            <div className="w-full space-y-3">
+            {/* Roles list — hierarchy cascades President → Scum */}
+            <motion.div layout className="w-full space-y-2">
               {roles.map((pr, i) => {
                 const meta = ROLE_META[pr.role];
                 return (
                   <motion.div
                     key={pr.player.id}
-                    initial={{ opacity: 0, x: -24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1, type: "spring", stiffness: 280, damping: 22 }}
-                    className="glass-strong rounded-2xl px-4 py-3 flex items-center gap-3"
+                    layout
+                    initial={{ opacity: 0, x: -24, scale: 0.96 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ delay: i * 0.1, type: "spring", stiffness: 300, damping: 24 }}
+                    className="glass-strong rounded-2xl px-4 py-2.5 flex items-center gap-3 relative overflow-hidden"
                     style={{ boxShadow: `0 0 28px -10px ${meta.glow}` }}
                   >
-                    <span className="text-2xl">{meta.emoji}</span>
-                    <div className="flex-1 min-w-0">
+                    {/* role-glow pulse sweep on entrance */}
+                    <motion.span
+                      aria-hidden
+                      className="absolute inset-0 pointer-events-none"
+                      initial={{ opacity: 0.45 }}
+                      animate={{ opacity: 0 }}
+                      transition={{ delay: i * 0.1 + 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ background: `radial-gradient(120% 80% at 0% 50%, ${meta.glow}33, transparent 70%)` }}
+                    />
+                    <motion.span
+                      className="text-2xl relative"
+                      initial={{ scale: 0, rotate: -25 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: i * 0.1 + 0.08, type: "spring", stiffness: 420, damping: 14 }}
+                    >
+                      {meta.emoji}
+                    </motion.span>
+                    <div className="flex-1 min-w-0 relative">
                       <div className="flex items-center gap-2 flex-wrap">
                         <PlayerChip player={pr.player} active />
                         <span className="text-xs font-bold uppercase tracking-widest" style={{ color: meta.glow }}>
@@ -257,19 +303,19 @@ function PresidentGame({ players }: { players: Player[] }) {
                       </div>
                       <p className="text-xs text-white/50 mt-0.5 leading-relaxed">{meta.description}</p>
                     </div>
-                    <span className="text-white/25 text-lg font-display shrink-0">#{pr.finishPosition}</span>
+                    <span className="text-white/25 text-lg font-display shrink-0 relative">#{pr.finishPosition}</span>
                   </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
 
             {/* Presidential command button */}
             {roles.some((r) => r.role === "president") && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: roles.length * 0.1 + 0.3 }}
-                className="w-full mt-2"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: roles.length * 0.1 + 0.3, type: "spring", stiffness: 300, damping: 26 }}
+                className="w-full"
               >
                 <div className="glass rounded-2xl px-4 py-3 text-center">
                   <p className="text-xs text-white/40 uppercase tracking-widest mb-2">Presidential Decree</p>
@@ -297,11 +343,11 @@ function PresidentGame({ players }: { players: Player[] }) {
 
             {/* Next hand */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: roles.length * 0.1 + 0.5 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: roles.length * 0.1 + 0.5, type: "spring", stiffness: 300, damping: 26 }}
             >
-              <NeonButton onClick={newHand} variant="ghost" size="lg">
+              <NeonButton onClick={newHand} variant="ghost" size="md">
                 <RotateCcw size={16} className="inline mr-1.5" />
                 New Hand
               </NeonButton>

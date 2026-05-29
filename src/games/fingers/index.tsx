@@ -6,7 +6,6 @@ import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Eye, EyeOff } from "lucide-react";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -184,15 +183,18 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
   /* ── render ── */
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Fingers"
-        subtitle="Guess how many keep their finger in. Last one standing drinks."
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center w-full">
+      <motion.p
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="text-white/50 text-sm text-center mb-3"
+      >
+        Guess how many keep their finger in. Last one standing drinks.
+      </motion.p>
 
       {/* Player chips showing who's still in */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <div className="flex flex-wrap justify-center gap-2 mb-3">
         {allPlayers.map((p) => {
           const stillIn = remaining.some((r) => r.id === p.id);
           return (
@@ -200,7 +202,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
               key={p.id}
               layout
               animate={stillIn ? { opacity: 1, scale: 1 } : { opacity: 0.25, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
+              transition={{ type: "spring", stiffness: 320, damping: 24 }}
             >
               <PlayerChip
                 player={p}
@@ -217,20 +219,25 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
         {phase === "guess" && (
           <motion.div
             key="guess"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="glass-strong rounded-3xl p-6 w-full max-w-md text-center"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.96 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            className="glass-strong rounded-3xl p-4 sm:p-6 w-full max-w-md text-center"
             style={{ boxShadow: `0 0 40px -14px ${ACCENT}` }}
           >
-            <p className="text-white/50 text-sm mb-1">It&apos;s your turn to guess,</p>
-            <h3
-              className="font-display text-3xl mb-1 neon-text"
+            <p className="text-white/50 text-sm mb-0.5">It&apos;s your turn to guess,</p>
+            <motion.h3
+              key={`guesser-${guesser.id}`}
+              initial={{ scale: 1.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="font-display text-2xl sm:text-3xl mb-1 neon-text"
               style={{ color: guesser.color }}
             >
               {guesser.name}
-            </h3>
-            <p className="text-white/60 text-sm mb-6">
+            </motion.h3>
+            <p className="text-white/60 text-sm mb-4">
               How many players will keep their finger <span className="text-white font-semibold">IN</span>?
               <br />
               <span className="text-white/40 text-xs">
@@ -238,16 +245,22 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
               </span>
             </p>
 
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-2.5 sm:gap-3">
               {Array.from({ length: voterList.length + 1 }, (_, i) => i).map((n) => (
-                <NeonButton
+                <motion.div
                   key={`guess-${n}`}
-                  size="md"
-                  variant={guess === n ? "danger" : "ghost"}
-                  onClick={() => startSecretPhase(n)}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.05 * n, type: "spring", stiffness: 360, damping: 22 }}
                 >
-                  {n}
-                </NeonButton>
+                  <NeonButton
+                    size="md"
+                    variant={guess === n ? "danger" : "ghost"}
+                    onClick={() => startSecretPhase(n)}
+                  >
+                    {n}
+                  </NeonButton>
+                </motion.div>
               ))}
             </div>
           </motion.div>
@@ -257,22 +270,34 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
         {phase === "secret" && currentVoter && (
           <motion.div
             key={`secret-${voterStep}`}
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.94 }}
-            className="glass-strong rounded-3xl p-6 w-full max-w-md text-center"
+            initial={{ opacity: 0, x: 60, scale: 0.94 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: -60, scale: 0.94 }}
+            transition={{ type: "spring", stiffness: 300, damping: 26 }}
+            className="glass-strong rounded-3xl p-4 sm:p-6 w-full max-w-md text-center"
             style={{ boxShadow: `0 0 40px -14px ${currentVoter.color}` }}
           >
-            <p className="text-white/40 text-xs uppercase tracking-widest mb-2">
+            <p className="text-white/40 text-xs uppercase tracking-widest mb-1.5">
+              <motion.span
+                className="inline-block"
+                animate={{ x: [0, 6, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                📱
+              </motion.span>{" "}
               Pass the phone to
             </p>
-            <h3
-              className="font-display text-3xl mb-1 neon-text"
+            <motion.h3
+              key={`voter-${currentVoter.id}`}
+              initial={{ scale: 1.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="font-display text-2xl sm:text-3xl mb-1 neon-text"
               style={{ color: currentVoter.color }}
             >
               {currentVoter.name}
-            </h3>
-            <p className="text-white/50 text-sm mb-5">
+            </motion.h3>
+            <p className="text-white/50 text-sm mb-4">
               Hide your choice from others.
               <br />
               <span className="text-white/30 text-xs">
@@ -281,7 +306,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
             </p>
 
             {!choiceMade ? (
-              <div className="flex gap-4 justify-center">
+              <div className="flex gap-3 sm:gap-4 justify-center">
                 <NeonButton
                   size="lg"
                   variant="success"
@@ -301,9 +326,12 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center gap-4"
+                className="flex flex-col items-center gap-3"
               >
-                <div
+                <motion.div
+                  initial={{ scale: 0.7 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 16 }}
                   className={cn(
                     "flex items-center gap-2 px-5 py-3 rounded-2xl text-lg font-bold",
                     pendingChoice ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-300",
@@ -314,7 +342,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
                   ) : (
                     <><EyeOff size={18} /> OUT — locked</>
                   )}
-                </div>
+                </motion.div>
                 <p className="text-white/40 text-xs">
                   Hand the phone to the next person before continuing.
                 </p>
@@ -334,10 +362,14 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
           <motion.div
             key="reveal"
             initial={{ opacity: 0, scale: 0.88 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={
+              totalIn === guess
+                ? { opacity: 1, scale: 1, y: [0, -10, 0] }
+                : { opacity: 1, scale: 1, x: [0, -10, 10, -6, 6, 0] }
+            }
             exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
-            className="glass-strong rounded-3xl p-6 w-full max-w-md text-center"
+            className="glass-strong rounded-3xl p-4 sm:p-6 w-full max-w-md text-center"
             style={{ boxShadow: `0 0 50px -10px ${ACCENT}` }}
           >
             <p className="text-white/50 text-sm mb-3">
@@ -347,11 +379,17 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
               guessed
             </p>
 
-            <div className="flex items-center justify-center gap-8 mb-6">
+            <div className="flex items-center justify-center gap-6 sm:gap-8 mb-4">
               <div className="flex flex-col items-center">
-                <span className="text-5xl font-display font-black" style={{ color: ACCENT }}>
+                <motion.span
+                  initial={{ scale: 1.5 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 16 }}
+                  className="text-5xl font-display font-black"
+                  style={{ color: ACCENT }}
+                >
                   {guess}
-                </span>
+                </motion.span>
                 <span className="text-white/40 text-xs mt-1">guess</span>
               </div>
               <span className="text-white/30 text-2xl">vs</span>
@@ -374,7 +412,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="flex flex-col items-center gap-3"
+                className="flex flex-col items-center gap-2"
               >
                 <p className="text-neon-lime font-display text-xl neon-text">
                   Correct! {guesser.name} is safe 🎉
@@ -402,7 +440,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
             <NeonButton
               variant="primary"
               size="lg"
-              className="mt-6"
+              className="mt-4"
               onClick={handleRevealNext}
             >
               Continue →
@@ -415,20 +453,29 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
           <motion.div
             key="drink"
             initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, scale: 1, y: [0, -12, 0] }}
             exit={{ opacity: 0 }}
             transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            className="glass-strong rounded-3xl p-8 w-full max-w-md text-center"
+            className="glass-strong rounded-3xl p-6 w-full max-w-md text-center"
             style={{ boxShadow: `0 0 60px -8px ${loser.color}` }}
           >
-            <div className="text-5xl mb-3">🍺</div>
-            <h3
-              className="font-display text-3xl neon-text mb-2"
+            <motion.div
+              className="text-5xl mb-2"
+              animate={{ rotate: [0, -12, 12, -8, 8, 0], scale: [1, 1.15, 1] }}
+              transition={{ duration: 0.9, ease: "easeInOut" }}
+            >
+              🍺
+            </motion.div>
+            <motion.h3
+              initial={{ scale: 1.4, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 16 }}
+              className="font-display text-2xl sm:text-3xl neon-text mb-2"
               style={{ color: loser.color }}
             >
               {loser.name}
-            </h3>
-            <p className="text-white/60 mb-5">
+            </motion.h3>
+            <p className="text-white/60 mb-4">
               You&apos;re the last one standing — bottom&apos;s up!
             </p>
             <DrinkCallout text={`${loser.name} drinks!`} accent={loser.color} />
@@ -439,7 +486,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
       {/* Reset */}
       <button
         onClick={resetGame}
-        className="mt-8 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-4 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> new round
       </button>

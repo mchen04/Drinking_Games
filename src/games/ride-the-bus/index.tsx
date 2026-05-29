@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
 import { createDeck, type Card, type Suit, isRed } from "@/lib/deck";
-import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { PlayingCard, NeonButton, DrinkCallout } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
 import { PhaseButtons, type Phase } from "./PhaseButtons";
@@ -190,15 +190,15 @@ export default function RideTheBus() {
 
   return (
     <div className="flex flex-col items-center">
-      <GameHeading
-        title="Ride the Bus 🚌"
-        subtitle="Four questions, four cards. Wrong answer = drink."
-        accent={ACCENT}
-      />
+      {phase !== "summary" && (
+        <p className="text-white/50 text-sm text-center mb-3">
+          Four questions, four cards. Wrong answer = drink.
+        </p>
+      )}
 
       {/* Progress dots */}
       {phase !== "summary" && (
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-4">
           {QUESTION_PHASES.map((p, i) => (
             <motion.div
               key={p}
@@ -206,6 +206,7 @@ export default function RideTheBus() {
                 scale: i === phaseIndex ? 1.3 : 1,
                 opacity: i <= phaseIndex ? 1 : 0.3,
               }}
+              transition={{ type: "spring", stiffness: 320, damping: 20 }}
               className="w-2.5 h-2.5 rounded-full"
               style={{ background: i <= phaseIndex ? ACCENT : "#ffffff40" }}
             />
@@ -214,7 +215,15 @@ export default function RideTheBus() {
       )}
 
       {/* Card row — 4 slots */}
-      <div className="flex gap-3 sm:gap-4 mb-8 justify-center">
+      <motion.div
+        className="flex gap-3 sm:gap-4 mb-4 justify-center"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.08 } },
+        }}
+      >
         {(cards as (Card | null)[]).map((card, i) => {
           const isCurrentSlot = i === phaseIndex && phase !== "summary";
           const glow =
@@ -227,14 +236,29 @@ export default function RideTheBus() {
                   : undefined;
 
           return (
-            <div key={i} className="flex flex-col items-center gap-1.5">
+            <motion.div
+              key={i}
+              className="flex flex-col items-center gap-1.5"
+              variants={{
+                hidden: { opacity: 0, y: -28, rotate: -8, scale: 0.8 },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  rotate: 0,
+                  scale: 1,
+                  transition: { type: "spring", stiffness: 300, damping: 22 },
+                },
+              }}
+            >
               <motion.div
                 animate={
                   isCurrentSlot && outcome
-                    ? { scale: [1, 1.08, 1], rotate: outcome === "wrong" ? [0, -4, 4, 0] : 0 }
+                    ? outcome === "wrong"
+                      ? { scale: [1, 1.08, 1], rotate: [0, -8, 8, -5, 5, 0], x: [0, -6, 6, -3, 3, 0] }
+                      : { scale: [1, 1.14, 1], rotate: 0 }
                     : { scale: 1 }
                 }
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 <PlayingCard
                   card={card}
@@ -251,10 +275,10 @@ export default function RideTheBus() {
                   Q{i + 1}
                 </span>
               )}
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Main interaction area */}
       <AnimatePresence mode="wait">
@@ -271,62 +295,86 @@ export default function RideTheBus() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 0.28 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center w-full max-w-sm"
           >
-            {/* Phase label */}
-            <p className="text-white/60 text-sm mb-4 font-semibold tracking-wide uppercase">
+            {/* Phase label (dynamic per-question heading) */}
+            <motion.p
+              key={phase}
+              initial={{ opacity: 0, scale: 1.25 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="font-display text-base neon-text mb-2 tracking-wide"
+              style={{ color: ACCENT }}
+            >
               {isQuestionPhase(phase) ? PHASE_LABELS[phase] : ""}
-            </p>
+            </motion.p>
 
             {/* Context hint */}
             <ContextHint phase={phase} cards={cards} />
 
-            {/* Outcome feedback */}
-            <div className="h-14 flex items-center justify-center mb-3">
+            {/* Buttons for this phase (outcome callout overlays above) */}
+            <div className="relative w-full flex justify-center">
               <AnimatePresence>
                 {outcome === "wrong" && (
-                  <DrinkCallout
+                  <motion.div
                     key="drink"
-                    text={`Drink ${isQuestionPhase(phase) ? PHASE_DRINKS[phase] : ""}!`}
-                    accent="#ff5e5b"
-                  />
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    className="absolute -top-12 left-1/2 -translate-x-1/2 z-10"
+                  >
+                    <DrinkCallout
+                      text={`Drink ${isQuestionPhase(phase) ? PHASE_DRINKS[phase] : ""}!`}
+                      accent="#ff5e5b"
+                    />
+                  </motion.div>
                 )}
                 {outcome === "correct" && (
                   <motion.p
                     key="correct"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="font-display text-xl neon-text"
+                    initial={{ opacity: 0, scale: 0.7, y: 8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ type: "spring", stiffness: 320, damping: 16 }}
+                    className="absolute -top-11 left-1/2 -translate-x-1/2 z-10 font-display text-xl neon-text whitespace-nowrap"
                     style={{ color: "#b6ff3c" }}
                   >
                     Correct! 🎉
                   </motion.p>
                 )}
               </AnimatePresence>
-            </div>
 
-            {/* Buttons for this phase */}
-            <PhaseButtons
-              phase={phase}
-              revealing={revealing}
-              onGuessColor={guessColor}
-              onGuessHigher={guessHigher}
-              onGuessInside={guessInside}
-              onGuessSuit={guessSuit}
-            />
+              <PhaseButtons
+                phase={phase}
+                revealing={revealing}
+                onGuessColor={guessColor}
+                onGuessHigher={guessHigher}
+                onGuessInside={guessInside}
+                onGuessSuit={guessSuit}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Running drinks tally (only while playing) */}
       {phase !== "summary" && (
-        <div className="mt-8 flex items-center gap-2 text-sm text-white/40">
+        <div className="mt-4 flex items-center gap-2 text-sm text-white/40">
           <span>drinks so far:</span>
-          <span className="font-bold" style={{ color: ACCENT }}>
-            {totalDrinks}
-          </span>
+          <AnimatePresence mode="popLayout">
+            <motion.span
+              key={totalDrinks}
+              initial={{ scale: 1.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.6, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 18 }}
+              className="font-bold tabular-nums"
+              style={{ color: ACCENT }}
+            >
+              {totalDrinks}
+            </motion.span>
+          </AnimatePresence>
         </div>
       )}
 
@@ -334,7 +382,7 @@ export default function RideTheBus() {
       {phase !== "summary" && (
         <button
           onClick={restart}
-          className="mt-4 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
+          className="mt-3 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
         >
           <RotateCcw size={12} /> start over
         </button>
@@ -354,7 +402,7 @@ function ContextHint({
 }) {
   if (phase === "q1") {
     return (
-      <p className="text-white/50 text-sm mb-4 text-center">
+      <p className="text-white/50 text-sm mb-3 text-center">
         Will the next card be <span className="text-rose-400 font-semibold">Red</span> or{" "}
         <span className="text-white font-semibold">Black</span>?
       </p>
@@ -363,7 +411,7 @@ function ContextHint({
   if (phase === "q2") {
     const c1 = cards[0];
     return (
-      <p className="text-white/50 text-sm mb-4 text-center">
+      <p className="text-white/50 text-sm mb-3 text-center">
         Card 1 is{" "}
         <span className="text-white font-semibold">
           {c1 ? `${c1.rank}${c1.suit}` : "?"}
@@ -377,7 +425,7 @@ function ContextHint({
     const c1 = cards[0];
     const c2 = cards[1];
     return (
-      <p className="text-white/50 text-sm mb-4 text-center">
+      <p className="text-white/50 text-sm mb-3 text-center">
         Cards{" "}
         <span className="text-white font-semibold">
           {c1 ? `${c1.rank}${c1.suit}` : "?"} &amp; {c2 ? `${c2.rank}${c2.suit}` : "?"}
@@ -389,7 +437,7 @@ function ContextHint({
   }
   if (phase === "q4") {
     return (
-      <p className="text-white/50 text-sm mb-4 text-center">
+      <p className="text-white/50 text-sm mb-3 text-center">
         Pick the <span className="text-white font-semibold">Suit</span> of the final card.
       </p>
     );
@@ -411,40 +459,84 @@ function Summary({
   return (
     <motion.div
       key="summary"
-      initial={{ opacity: 0, scale: 0.88 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ type: "spring", stiffness: 240, damping: 22 }}
-      className="glass-strong rounded-3xl p-6 w-full max-w-sm text-center"
-      style={{ boxShadow: `0 0 50px -14px ${ACCENT}` }}
+      initial={{ opacity: 0, scale: 0.88, y: 12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ type: "spring", stiffness: 260, damping: 20 }}
+      className="glass-strong rounded-3xl p-5 w-full max-w-sm text-center"
+      style={{ boxShadow: `0 0 50px -14px ${survived ? "#b6ff3c" : ACCENT}` }}
     >
-      <div className="text-5xl mb-3">{survived ? "🏆" : "🚌"}</div>
+      <motion.div
+        className="text-5xl mb-2"
+        initial={{ scale: 0, rotate: survived ? -20 : 0 }}
+        animate={
+          survived
+            ? { scale: [0, 1.3, 1], y: [0, -10, 0], rotate: [-20, 0, 0] }
+            : { scale: 1, x: [0, -10, 10, -6, 6, 0] }
+        }
+        transition={{
+          delay: 0.15,
+          duration: survived ? 0.7 : 0.5,
+          type: survived ? "spring" : "tween",
+          stiffness: 260,
+        }}
+      >
+        {survived ? "🏆" : "🚌"}
+      </motion.div>
 
-      <h3
+      <motion.h3
         className="font-display text-2xl neon-text mb-1"
         style={{ color: survived ? "#b6ff3c" : ACCENT }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
       >
         {survived ? "Clean ride!" : "You rode the bus!"}
-      </h3>
+      </motion.h3>
 
-      <p className="text-white/60 text-sm mb-5">
+      <p className="text-white/60 text-sm mb-4">
         {survived
           ? "Not a single sip. Hero status achieved."
           : `Total drinks: `}
         {!survived && (
-          <span className="font-bold text-white text-lg">{totalDrinks}</span>
+          <motion.span
+            className="font-bold text-white text-lg tabular-nums inline-block"
+            initial={{ scale: 1.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 16, delay: 0.35 }}
+          >
+            {totalDrinks}
+          </motion.span>
         )}
       </p>
 
       {/* Per-question breakdown */}
-      <div className="grid grid-cols-4 gap-2 mb-6">
+      <motion.div
+        className="grid grid-cols-4 gap-2 mb-4"
+        initial="hidden"
+        animate="show"
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.3 } } }}
+      >
         {(cards as (Card | null)[]).map((card, i) => (
-          <div key={i} className="flex flex-col items-center gap-1">
+          <motion.div
+            key={i}
+            className="flex flex-col items-center gap-1"
+            variants={{
+              hidden: { opacity: 0, y: 14, rotate: -6, scale: 0.85 },
+              show: {
+                opacity: 1,
+                y: 0,
+                rotate: 0,
+                scale: 1,
+                transition: { type: "spring", stiffness: 300, damping: 20 },
+              },
+            }}
+          >
             <PlayingCard card={card} size="sm" glow={ACCENT} />
             <span className="text-[10px] text-white/40">Q{i + 1}</span>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
       <NeonButton onClick={onRestart} size="lg" variant="primary" fullWidth>
         Ride again 🚌

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Bus } from "lucide-react";
 import { createDeck, type Card, type Rank } from "@/lib/deck";
-import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { PlayingCard, NeonButton, DrinkCallout } from "@/components/ui";
 import { celebrate } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
 
@@ -132,30 +132,54 @@ export default function BusDriver() {
       : `Take ${penaltyDrinks} drinks!`;
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Bus Driver"
-        subtitle="Flip 8 cards without hitting a face card. J=1 · Q=2 · K=3 · A=4 drinks — then reset!"
-        accent={ACCENT}
-      />
+    <motion.div
+      className="flex flex-col items-center w-full"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-white/50 text-sm text-center mb-3">
+        Flip 8 cards without hitting a face card. J=1 · Q=2 · K=3 · A=4 drinks — then reset!
+      </p>
 
       {/* attempt counter */}
-      <div className="mb-5 flex items-center gap-2 text-sm text-white/50">
+      <div className="mb-3 flex items-center gap-2 text-sm text-white/50">
         <Bus size={15} style={{ color: ACCENT }} />
         <span>
-          Attempt <b className="text-white">{attempts}</b>
+          Attempt{" "}
+          <motion.b
+            key={attempts}
+            className="text-white inline-block"
+            initial={{ scale: 1.5, opacity: 0.4 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 18 }}
+          >
+            {attempts}
+          </motion.b>
         </span>
         <span className="text-white/25">·</span>
         <span>
           Progress{" "}
-          <b style={{ color: ACCENT }}>
-            {flipped}/{ROW_SIZE}
-          </b>
+          <motion.b
+            key={flipped}
+            className="inline-block"
+            style={{ color: ACCENT }}
+            initial={{ scale: 1.5, opacity: 0.4 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 320, damping: 18 }}
+          >
+            {flipped}
+          </motion.b>
+          /{ROW_SIZE}
         </span>
       </div>
 
       {/* card row */}
-      <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 px-2">
+      <motion.div
+        className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-4 px-2"
+        animate={phase === "penalty" ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
+        transition={phase === "penalty" ? { duration: 0.45, ease: "easeInOut" } : { duration: 0.2 }}
+      >
         {row.map((slot, i) => {
           const glow =
             slot.state === "safe"
@@ -163,12 +187,22 @@ export default function BusDriver() {
               : slot.state === "face"
               ? "#ff5e5b"
               : ACCENT;
+          const isLatest = slot.state === "safe" && i === flipped - 1;
+          const isFace = slot.state === "face";
           return (
             <motion.div
               key={i}
               initial={{ scale: 0.85, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: i * 0.05, type: "spring", stiffness: 260, damping: 22 }}
+              animate={{
+                scale: isFace ? [1, 1.12, 1] : isLatest ? [1, 1.18, 1] : 1,
+                opacity: 1,
+              }}
+              transition={{
+                delay: slot.state === "hidden" ? i * 0.05 : 0,
+                type: "spring",
+                stiffness: 300,
+                damping: 18,
+              }}
             >
               <PlayingCard
                 card={slot.card}
@@ -179,10 +213,10 @@ export default function BusDriver() {
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* progress bar */}
-      <div className="w-full max-w-xs h-1.5 glass rounded-full overflow-hidden mb-6">
+      <div className="w-full max-w-xs h-1.5 glass rounded-full overflow-hidden mb-4">
         <motion.div
           className="h-full rounded-full"
           style={{ background: ACCENT }}
@@ -192,20 +226,27 @@ export default function BusDriver() {
       </div>
 
       {/* feedback area */}
-      <div className="min-h-[5rem] flex flex-col items-center justify-center mb-6">
+      <div className="min-h-[3.5rem] flex flex-col items-center justify-center mb-4">
         <AnimatePresence mode="wait">
           {phase === "won" ? (
             <motion.div
               key="won"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="glass-strong rounded-3xl px-8 py-5 text-center"
+              initial={{ opacity: 0, scale: 0.8, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              className="glass-strong rounded-3xl px-6 py-4 text-center"
               style={{ boxShadow: `0 0 50px -10px ${ACCENT}` }}
             >
-              <div className="text-5xl mb-2">🚌🎉</div>
+              <motion.div
+                className="text-4xl sm:text-5xl mb-1"
+                animate={{ y: [0, -8, 0], rotate: [0, -4, 4, 0] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                🚌🎉
+              </motion.div>
               <h3
-                className="font-display text-2xl neon-text mb-1"
+                className="font-display text-xl sm:text-2xl neon-text mb-1"
                 style={{ color: ACCENT }}
               >
                 You survived the bus!
@@ -221,10 +262,11 @@ export default function BusDriver() {
           ) : phase === "penalty" ? (
             <motion.div
               key="penalty"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3"
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="flex flex-col items-center gap-2"
             >
               <DrinkCallout text={drinkLabel} accent="#ff5e5b" />
               <p className="text-white/50 text-xs">Reshuffling and resetting the row…</p>
@@ -274,10 +316,10 @@ export default function BusDriver() {
 
       <button
         onClick={hardReset}
-        className="mt-8 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-4 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> restart from scratch
       </button>
-    </div>
+    </motion.div>
   );
 }

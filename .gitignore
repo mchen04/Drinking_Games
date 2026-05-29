@@ -35,3 +35,4 @@ yarn-error.log*
 /screenshots
 /.agent-browser
 /.wf
+.wf-polish.js

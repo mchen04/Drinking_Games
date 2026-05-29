@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { Crown } from "lucide-react";
-import { Die, NeonButton, RequirePlayers, GameHeading, PlayerChip } from "@/components/ui";
+import { Die, NeonButton, RequirePlayers, PlayerChip } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { randInt } from "@/lib/random";
 import { sfx } from "@/lib/sound";
@@ -73,43 +73,130 @@ function ThreeMan({ players }: { players: Player[] }) {
     setRolled(false);
   }
 
+  // Presentation-only: derive a punchy headline from the settled roll.
+  const sum = dice[0] + dice[1];
+  const isDoubles = dice[0] === dice[1];
+  const hasThree = !rolling && rolled && (dice[0] === 3 || dice[1] === 3);
+  const headline = rolling || !rolled || msgs.length === 0
+    ? null
+    : hasThree && threeMan === roller.id
+      ? { text: "THREE MAN!", color: "#b6ff3c" }
+      : hasThree
+        ? { text: "A THREE!", color: "#b6ff3c" }
+        : isDoubles
+          ? { text: "DOUBLES!", color: "#ffb627" }
+          : sum === 7
+            ? { text: "SEVEN", color: "#2de2c0" }
+            : sum === 11
+              ? { text: "ELEVEN", color: "#ff6ad5" }
+              : null;
+
   return (
     <div className="flex flex-col items-center">
-      <GameHeading title="Three Man" subtitle="Roll two dice. 7 = right drinks · 11 = left · any 3 = Three Man drinks · doubles = give drinks." accent="#b6ff3c" />
+      <p className="text-white/50 text-xs sm:text-sm text-center mb-3 max-w-md px-2">
+        Roll two dice. 7 = right drinks · 11 = left · any 3 = Three Man drinks · doubles = give drinks.
+      </p>
 
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <motion.div layout className="flex flex-wrap justify-center gap-1.5 mb-3">
         {players.map((p, i) => (
           <PlayerChip key={p.id} player={p} active={i === turn % players.length} />
         ))}
-      </div>
+      </motion.div>
 
-      {threeManPlayer && (
-        <div className="flex items-center gap-2 mb-6 px-3 py-1.5 glass rounded-full text-sm" style={{ color: threeManPlayer.color }}>
-          <Crown size={14} /> Three Man: <b>{threeManPlayer.name}</b>
-        </div>
-      )}
+      <AnimatePresence>
+        {threeManPlayer && (
+          <motion.div
+            key={threeManPlayer.id}
+            layout
+            initial={{ opacity: 0, scale: 0.6, y: -6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.6 }}
+            transition={{ type: "spring", stiffness: 320, damping: 18 }}
+            className="flex items-center gap-2 mb-3 px-3 py-1.5 glass rounded-full text-sm"
+            style={{ color: threeManPlayer.color, boxShadow: `0 0 22px -6px ${threeManPlayer.color}` }}
+          >
+            <motion.span
+              animate={{ rotate: [0, -10, 10, -6, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 1.6 }}
+              className="inline-flex"
+            >
+              <Crown size={14} />
+            </motion.span>
+            Three Man: <b>{threeManPlayer.name}</b>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <p className="text-white/60 mb-4">
-        <b style={{ color: roller.color }}>{roller.name}</b>&apos;s roll
+      <p className="text-white/60 text-sm mb-2">
+        <AnimatePresence mode="wait">
+          <motion.b
+            key={roller.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="inline-block"
+            style={{ color: roller.color }}
+          >
+            {roller.name}
+          </motion.b>
+        </AnimatePresence>
+        &apos;s roll
       </p>
 
-      <div className="flex gap-4 mb-8">
-        <Die value={dice[0]} rolling={rolling} size="lg" color="#b6ff3c" />
-        <Die value={dice[1]} rolling={rolling} size="lg" color="#2de2c0" />
+      {/* Dice + overlaid headline reveal */}
+      <div className="relative flex gap-3 sm:gap-4 mb-3">
+        <motion.div
+          animate={
+            !rolling && rolled && (hasThree || isDoubles)
+              ? { x: [0, -8, 8, -5, 5, 0] }
+              : { x: 0 }
+          }
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="flex gap-3 sm:gap-4 scale-90 sm:scale-100 origin-top"
+        >
+          <Die value={dice[0]} rolling={rolling} size="lg" color="#b6ff3c" />
+          <Die value={dice[1]} rolling={rolling} size="lg" color="#2de2c0" />
+        </motion.div>
+
+        <AnimatePresence>
+          {headline && (
+            <motion.div
+              key={headline.text + msgs.join()}
+              initial={{ opacity: 0, scale: 0.4, rotate: -6, y: -10 }}
+              animate={{ opacity: 1, scale: 1, rotate: 0, y: 0 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ type: "spring", stiffness: 320, damping: 13 }}
+              className="absolute -top-3 left-1/2 -translate-x-1/2 -translate-y-full font-display uppercase tracking-wider text-lg sm:text-xl whitespace-nowrap neon-text"
+              style={{ color: headline.color }}
+            >
+              {headline.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="min-h-[6rem] w-full max-w-md mb-4">
+      <div className="relative w-full max-w-md mb-3 min-h-[3.5rem]">
         <AnimatePresence mode="wait">
           {msgs.length > 0 && (
             <motion.div
               key={msgs.join()}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              className="glass-strong rounded-2xl p-4 space-y-1.5 text-center"
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
+              className="glass-strong rounded-2xl p-3 sm:p-4 space-y-1 text-center"
             >
               {msgs.map((m, i) => (
-                <p key={i} className="text-white/85">{m}</p>
+                <motion.p
+                  key={i}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.08 * i + 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  className="text-sm sm:text-base text-white/85"
+                >
+                  {m}
+                </motion.p>
               ))}
             </motion.div>
           )}

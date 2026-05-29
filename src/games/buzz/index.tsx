@@ -6,7 +6,6 @@ import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Trophy, Zap } from "lucide-react";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -115,15 +114,18 @@ function Buzz({ players }: { players: Player[] }) {
   const isWrong = outcome === "wrong" || outcome === "new-record";
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Buzz"
-        subtitle="Divisible by 7 or contains a 7? Say BUZZ — not the number!"
-        accent={ACCENT}
-      />
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col items-center w-full"
+    >
+      <p className="text-white/50 text-sm text-center mb-3">
+        Divisible by 7 or contains a 7? Say BUZZ — not the number!
+      </p>
 
       {/* Player rotation chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <motion.div layout className="flex flex-wrap justify-center gap-2 mb-3">
         {players.map((p, i) => (
           <PlayerChip
             key={p.id}
@@ -131,7 +133,7 @@ function Buzz({ players }: { players: Player[] }) {
             active={i === turn % players.length && !isWrong}
           />
         ))}
-      </div>
+      </motion.div>
 
       {/* Active player label */}
       <AnimatePresence mode="wait">
@@ -141,7 +143,7 @@ function Buzz({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="text-white/60 text-sm mb-8"
+            className="text-white/60 text-sm mb-3 h-5"
           >
             <b style={{ color: activePlayer.color }}>{activePlayer.name}</b>
             {" — what do you say?"}
@@ -152,39 +154,80 @@ function Buzz({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="text-white/60 text-sm mb-8"
+            className="text-white/60 text-sm mb-3 h-5"
           >
             Resetting to 1…
           </motion.p>
         )}
       </AnimatePresence>
 
-      {/* Big number display */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={count}
-          initial={{ scale: 0.7, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 1.15, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 380, damping: 22 }}
-          className="glass-strong rounded-3xl flex items-center justify-center mb-8"
-          style={{
-            width: 160,
-            height: 160,
-            boxShadow: buzzExpected ? `0 0 64px -10px ${ACCENT}` : "none",
-          }}
-        >
-          <span
-            className="font-display text-6xl tabular-nums"
-            style={{ color: buzzExpected ? ACCENT : "white" }}
+      {/* Big number display — hero. Pulses + glows when a BUZZ is due,
+          shakes on a wrong call, flashes a giant BUZZ overlay on reveal. */}
+      <motion.div
+        animate={
+          isWrong
+            ? { x: [0, -12, 12, -8, 8, -4, 4, 0] }
+            : buzzExpected
+              ? { scale: [1, 1.04, 1] }
+              : { scale: 1 }
+        }
+        transition={
+          isWrong
+            ? { duration: 0.5 }
+            : buzzExpected
+              ? { duration: 1.1, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0.2 }
+        }
+        className="relative mb-4"
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={count}
+            initial={{ scale: 1.5, opacity: 0, rotate: -4 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 1.15, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 20 }}
+            className="glass-strong rounded-3xl flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40"
+            style={{
+              boxShadow: buzzExpected ? `0 0 64px -8px ${ACCENT}` : "none",
+            }}
           >
-            {count}
-          </span>
-        </motion.div>
-      </AnimatePresence>
+            <span
+              className="font-display text-5xl sm:text-6xl tabular-nums"
+              style={{
+                color: buzzExpected ? ACCENT : "white",
+                textShadow: buzzExpected ? `0 0 24px ${ACCENT}` : "none",
+              }}
+            >
+              {count}
+            </span>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Giant BUZZ flash overlay on a wrong call */}
+        <AnimatePresence>
+          {isWrong && (
+            <motion.div
+              key="buzz-flash"
+              initial={{ scale: 0.4, opacity: 0, rotate: -10 }}
+              animate={{ scale: 1, opacity: 1, rotate: -6 }}
+              exit={{ scale: 1.4, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 14 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            >
+              <span
+                className="font-display text-3xl sm:text-4xl tracking-tight neon-text"
+                style={{ color: ACCENT }}
+              >
+                BUZZ!
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {/* Action buttons */}
-      <div className="flex gap-4 mb-6">
+      <div className="flex gap-3 mb-3">
         <NeonButton
           onClick={handleSay}
           size="lg"
@@ -203,15 +246,17 @@ function Buzz({ players }: { players: Player[] }) {
         </NeonButton>
       </div>
 
-      {/* Outcome feedback */}
-      <div className="h-16 flex items-center justify-center">
+      {/* Outcome feedback — overlay so it doesn't reserve big fixed height */}
+      <div className="relative h-9 flex items-center justify-center w-full">
         <AnimatePresence mode="wait">
           {outcome === "wrong" && (
             <motion.div
               key="wrong"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, scale: 0.8, y: 6 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="absolute"
             >
               <DrinkCallout
                 text={`${penaltyPlayer?.name} drinks! Back to 1.`}
@@ -222,9 +267,11 @@ function Buzz({ players }: { players: Player[] }) {
           {outcome === "new-record" && (
             <motion.div
               key="record"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, scale: 0.8, y: 6 }}
+              animate={{ opacity: 1, scale: [0.8, 1.08, 1], y: 0 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 300, damping: 16 }}
+              className="absolute"
             >
               <DrinkCallout
                 text={`${penaltyPlayer?.name} drinks! New record: ${highScore}`}
@@ -235,10 +282,11 @@ function Buzz({ players }: { players: Player[] }) {
           {outcome === "right" && (
             <motion.p
               key="right"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="font-display text-lg"
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: [0.6, 1.15, 1] }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 340, damping: 16 }}
+              className="absolute font-display text-lg"
               style={{ color: ACCENT }}
             >
               Correct!
@@ -248,13 +296,24 @@ function Buzz({ players }: { players: Player[] }) {
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-6 mt-2 text-sm text-white/50">
+      <div className="flex items-center gap-6 mt-1 text-sm text-white/50">
         <span>
           at <b className="text-white">{count}</b>
         </span>
         <span className="flex items-center gap-1.5">
           <Trophy size={13} style={{ color: "#ffb627" }} />
-          best <b style={{ color: "#ffb627" }}>{highScore}</b>
+          best{" "}
+          <AnimatePresence mode="popLayout">
+            <motion.b
+              key={highScore}
+              initial={{ scale: 1.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              style={{ color: "#ffb627", display: "inline-block" }}
+            >
+              {highScore}
+            </motion.b>
+          </AnimatePresence>
         </span>
       </div>
 
@@ -263,39 +322,30 @@ function Buzz({ players }: { players: Player[] }) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="glass rounded-2xl px-5 py-4 mt-8 max-w-xs w-full text-xs text-white/50 text-center space-y-1"
+        className="glass rounded-2xl px-4 py-2.5 mt-3 max-w-xs w-full text-xs text-white/50 text-center space-y-0.5"
       >
-        <p className="font-semibold text-white/70 mb-1.5">The Buzz Rule</p>
         <p>
           Say{" "}
           <span style={{ color: ACCENT }} className="font-bold">
             BUZZ
           </span>{" "}
-          instead of any number that is:
-        </p>
-        <p>
-          • divisible by <span className="text-white font-semibold">7</span>{" "}
-          (7, 14, 21, 28…)
-        </p>
-        <p>
-          • contains the digit <span className="text-white font-semibold">7</span>{" "}
-          (7, 17, 27, 37, 70, 71…)
-        </p>
-        <p className="pt-1.5">
-          Wrong answer?{" "}
+          on any{" "}
+          <span className="text-white font-semibold">multiple of 7</span> or
+          number with a <span className="text-white font-semibold">7</span> in
+          it. Wrong?{" "}
           <span style={{ color: ACCENT }} className="font-semibold">
             Drink
           </span>{" "}
-          and reset to 1.
+          &amp; reset to 1.
         </p>
       </motion.div>
 
       <button
         onClick={reset}
-        className="mt-6 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> restart
       </button>
-    </div>
+    </motion.div>
   );
 }

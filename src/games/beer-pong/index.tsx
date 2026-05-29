@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { RotateCcw, Trophy } from "lucide-react";
-import { NeonButton, GameHeading } from "@/components/ui";
+import { NeonButton } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
 import { cn } from "@/lib/cn";
@@ -44,7 +44,7 @@ interface TeamRackProps {
 
 function TeamRack({ name, onNameChange, cups, pendingTaps, onCupTap, accent, disabled, remaining }: TeamRackProps) {
   return (
-    <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
+    <div className="flex flex-col items-center gap-2.5 flex-1 min-w-0">
       {/* Editable team name */}
       <input
         type="text"
@@ -53,7 +53,7 @@ function TeamRack({ name, onNameChange, cups, pendingTaps, onCupTap, accent, dis
         maxLength={18}
         disabled={disabled}
         className={cn(
-          "bg-transparent border-b-2 text-center font-display text-xl font-bold text-white",
+          "bg-transparent border-b-2 text-center font-display text-lg sm:text-xl font-bold text-white",
           "focus:outline-none placeholder-white/30 transition-colors w-full max-w-[180px]",
           disabled ? "cursor-default opacity-60" : "hover:border-white/60 focus:border-white",
         )}
@@ -62,40 +62,52 @@ function TeamRack({ name, onNameChange, cups, pendingTaps, onCupTap, accent, dis
         aria-label="Team name"
       />
 
-      {/* Remaining badge */}
+      {/* Remaining badge — count pops when it changes */}
       <div
-        className="glass rounded-full px-3 py-1 text-sm font-semibold"
+        className="glass rounded-full px-3 py-1 text-sm font-semibold flex items-baseline gap-1"
         style={{ color: accent, boxShadow: `inset 0 0 0 1px ${accent}44` }}
       >
-        {remaining} cup{remaining !== 1 ? "s" : ""} left
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.span
+            key={remaining}
+            initial={{ scale: 1.5, opacity: 0, y: -4 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.6, opacity: 0, y: 4 }}
+            transition={{ type: "spring", stiffness: 320, damping: 20 }}
+            className="tabular-nums inline-block"
+          >
+            {remaining}
+          </motion.span>
+        </AnimatePresence>
+        <span>cup{remaining !== 1 ? "s" : ""} left</span>
       </div>
 
       {/* Cup triangle rack */}
-      <div className="flex flex-col items-center gap-2 py-2">
+      <div className="flex flex-col items-center gap-1.5 sm:gap-2 py-1">
         {RACK_ROWS.map((count, rowIdx) => {
           const offset = ROW_OFFSETS[rowIdx];
           return (
-            <div key={rowIdx} className="flex gap-2 justify-center">
+            <div key={rowIdx} className="flex gap-1.5 sm:gap-2 justify-center">
               {Array.from({ length: count }, (_, colIdx) => {
                 const cupIdx = offset + colIdx;
                 const sunk = cups[cupIdx];
                 return (
-                  <AnimatePresence key={cupIdx} initial={false}>
+                  <AnimatePresence key={cupIdx} initial={false} mode="wait">
                     {!sunk ? (
                       <motion.button
                         key="cup"
                         initial={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.1, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 360, damping: 22 }}
+                        exit={{ scale: 0.2, opacity: 0, y: 22, rotate: 18, filter: "blur(2px)" }}
+                        transition={{ type: "spring", stiffness: 380, damping: 24 }}
                         onClick={() => onCupTap(cupIdx)}
                         disabled={disabled || pendingTaps.has(cupIdx)}
                         aria-label={`Cup ${cupIdx + 1}`}
                         className={cn(
-                          "w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center",
+                          "w-9 h-9 sm:w-12 sm:h-12 rounded-full border-2 flex items-center justify-center",
                           "transition-shadow select-none",
                           disabled || pendingTaps.has(cupIdx)
                             ? "cursor-default opacity-50"
-                            : "cursor-pointer hover:scale-110 active:scale-95",
+                            : "cursor-pointer",
                         )}
                         style={{
                           borderColor: accent,
@@ -105,13 +117,16 @@ function TeamRack({ name, onNameChange, cups, pendingTaps, onCupTap, accent, dis
                         whileHover={disabled || pendingTaps.has(cupIdx) ? undefined : { scale: 1.12 }}
                         whileTap={disabled || pendingTaps.has(cupIdx) ? undefined : { scale: 0.9 }}
                       >
-                        <span className="text-lg">🍺</span>
+                        <span className="text-base sm:text-lg">🍺</span>
                       </motion.button>
                     ) : (
                       /* Ghost placeholder to preserve grid shape */
-                      <div
+                      <motion.div
                         key="empty"
-                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 opacity-15"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.15 }}
+                        transition={{ duration: 0.4, delay: 0.15 }}
+                        className="w-9 h-9 sm:w-12 sm:h-12 rounded-full border-2"
                         style={{ borderColor: accent }}
                         aria-hidden="true"
                       />
@@ -142,17 +157,29 @@ function WinnerBanner({ winner, onRematch }: WinnerBannerProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
-      className="glass-strong rounded-3xl p-8 text-center w-full max-w-sm mx-auto"
+      className="glass-strong rounded-3xl p-5 sm:p-6 text-center w-full max-w-sm mx-auto"
       style={{ boxShadow: `0 0 60px -12px ${ACCENT}` }}
     >
-      <Trophy size={48} className="mx-auto mb-3" style={{ color: ACCENT }} />
-      <h3 className="font-display text-3xl font-bold mb-1" style={{ color: ACCENT }}>
+      <motion.div
+        initial={{ scale: 0, rotate: -30 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
+      >
+        <Trophy size={42} className="mx-auto mb-2 animate-bob" style={{ color: ACCENT }} />
+      </motion.div>
+      <motion.h3
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        className="font-display text-2xl sm:text-3xl font-bold mb-1"
+        style={{ color: ACCENT }}
+      >
         {winner} wins!
-      </h3>
+      </motion.h3>
       <p className="text-white/60 text-sm mb-2">
         🏆 All cups cleared!
       </p>
-      <p className="text-white/50 text-xs mb-6 leading-relaxed">
+      <p className="text-white/50 text-xs mb-4 leading-relaxed">
         <span className="text-white/75 font-semibold">Redemption round:</span> The losing team
         gets one last turn to sink all remaining cups. If they clear the rack, the game goes to
         overtime — re-rack and sudden death!
@@ -256,11 +283,9 @@ export default function BeerPong() {
 
   return (
     <div className="flex flex-col items-center w-full">
-      <GameHeading
-        title="Beer Pong"
-        subtitle="Tap a team's cup when it gets sunk. Lose all 10 and you're out — last team standing wins! 🏆"
-        accent={ACCENT}
-      />
+      <p className="text-white/50 text-sm text-center mb-3 max-w-sm">
+        Tap a team&apos;s cup when it gets sunk. Lose all 10 and you&apos;re out — last team standing wins! 🏆
+      </p>
 
       <AnimatePresence mode="wait">
         {winner ? (
@@ -273,31 +298,43 @@ export default function BeerPong() {
             exit={{ opacity: 0 }}
             className="w-full"
           >
-            {/* Score bar */}
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <span
-                className="font-display text-2xl font-bold tabular-nums"
-                style={{ color: ACCENT }}
-              >
-                {remaining[0]}
-              </span>
-              <span className="text-white/30 text-sm font-semibold uppercase tracking-widest">
-                vs
-              </span>
-              <span
-                className="font-display text-2xl font-bold tabular-nums"
-                style={{ color: ACCENT }}
-              >
-                {remaining[1]}
-              </span>
+            {/* Score bar — numbers pop on change */}
+            <div className="flex items-center justify-center gap-4 mb-3">
+              {([0, 1] as const).map((teamIdx) => (
+                <div key={teamIdx} className="contents">
+                  <div className="font-display text-2xl font-bold tabular-nums overflow-hidden">
+                    <AnimatePresence mode="popLayout" initial={false}>
+                      <motion.span
+                        key={remaining[teamIdx]}
+                        initial={{ scale: 1.5, opacity: 0, y: -8 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.6, opacity: 0, y: 8 }}
+                        transition={{ type: "spring", stiffness: 320, damping: 20 }}
+                        className="inline-block"
+                        style={{ color: ACCENT }}
+                      >
+                        {remaining[teamIdx]}
+                      </motion.span>
+                    </AnimatePresence>
+                  </div>
+                  {teamIdx === 0 && (
+                    <span className="text-white/30 text-sm font-semibold uppercase tracking-widest">
+                      vs
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
 
             {/* Two racks — side-by-side on sm+, stacked on mobile */}
-            <div className="flex flex-col sm:flex-row gap-8 sm:gap-6 justify-center items-center sm:items-start w-full">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center sm:items-start w-full">
               {([0, 1] as const).map((teamIdx) => (
-                <div
+                <motion.div
                   key={teamIdx}
-                  className="glass rounded-3xl p-5 sm:p-6 w-full max-w-[240px]"
+                  initial={{ opacity: 0, y: 24, scale: 0.94 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.06 + teamIdx * 0.08, ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
+                  className="glass rounded-3xl p-3 sm:p-6 w-full max-w-[240px]"
                   style={{ boxShadow: `0 0 30px -14px ${ACCENT}` }}
                 >
                   <TeamRack
@@ -310,12 +347,12 @@ export default function BeerPong() {
                     disabled={!!winner}
                     remaining={remaining[teamIdx]}
                   />
-                </div>
+                </motion.div>
               ))}
             </div>
 
             {/* Reset link */}
-            <div className="mt-8 text-center">
+            <div className="mt-3 text-center">
               <button
                 onClick={handleRematch}
                 className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors mx-auto"

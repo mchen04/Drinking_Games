@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
-import { GlassCard, NeonButton, RequirePlayers, GameHeading, DrinkCallout } from "@/components/ui";
+import { GlassCard, NeonButton, RequirePlayers, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { randInt, createDealer } from "@/lib/random";
 import { sfx } from "@/lib/sound";
@@ -122,22 +122,23 @@ function Game({ players }: { players: Player[] }) {
 
   return (
     <div className="flex flex-col items-center w-full max-w-xl mx-auto">
-      <GameHeading
-        title="Would You Rather"
-        subtitle="Everyone votes. Minority drinks. Tied? Everyone sips."
-        accent={ACCENT}
-      />
+      <p className="text-white/50 text-sm text-center mb-3">
+        Everyone votes. Minority drinks. Tied? Everyone sips.
+      </p>
 
       {/* Player vote tracker */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <motion.div layout className="flex flex-wrap justify-center gap-1.5 mb-3">
         {players.map((p) => {
           const v = round.votes[p.id];
           return (
             <motion.span
               key={p.id}
               layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all",
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold",
                 v != null ? "text-ink" : "text-white/60 glass",
               )}
               style={
@@ -152,12 +153,20 @@ function Game({ players }: { players: Player[] }) {
               />
               {p.name}
               {v != null && (
-                <span className="font-bold uppercase ml-0.5">{v === "a" ? "A" : "B"}</span>
+                <motion.span
+                  key="picked"
+                  initial={{ scale: 1.6 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 16 }}
+                  className="font-bold uppercase ml-0.5"
+                >
+                  {v === "a" ? "A" : "B"}
+                </motion.span>
               )}
             </motion.span>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Dilemma area */}
       <AnimatePresence mode="wait">
@@ -181,7 +190,7 @@ function Game({ players }: { players: Player[] }) {
       </AnimatePresence>
 
       {/* Reveal / outcome row */}
-      <div className="mt-6 flex flex-col items-center gap-3 w-full">
+      <div className="mt-3 flex flex-col items-center gap-2 w-full">
         <AnimatePresence mode="wait">
           {round.revealed && outcome ? (
             <motion.div
@@ -189,20 +198,31 @@ function Game({ players }: { players: Player[] }) {
               initial={{ opacity: 0, scale: 0.85 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22 }}
               className="flex flex-col items-center gap-3 w-full"
             >
-              {outcome.majority === "tie" ? (
-                <DrinkCallout text="It's a tie — everyone sips!" accent={ACCENT} />
-              ) : (
-                <DrinkCallout
-                  text={
-                    outcome.minority.length === 1
-                      ? `${outcome.minority[0].name} drinks!`
-                      : `Minority drinks! (${outcome.minority.map((p) => p.name).join(", ")})`
-                  }
-                  accent={ACCENT}
-                />
-              )}
+              <motion.div
+                initial={{ x: 0 }}
+                animate={
+                  outcome.majority === "tie"
+                    ? { y: [0, -8, 0, -4, 0] }
+                    : { x: [0, -10, 10, -6, 6, 0] }
+                }
+                transition={{ duration: 0.5, ease: "easeOut", delay: 0.18 }}
+              >
+                {outcome.majority === "tie" ? (
+                  <DrinkCallout text="It's a tie — everyone sips!" accent={ACCENT} />
+                ) : (
+                  <DrinkCallout
+                    text={
+                      outcome.minority.length === 1
+                        ? `${outcome.minority[0].name} drinks!`
+                        : `Minority drinks! (${outcome.minority.map((p) => p.name).join(", ")})`
+                    }
+                    accent={ACCENT}
+                  />
+                )}
+              </motion.div>
               <NeonButton onClick={nextDilemma} size="lg" variant="primary">
                 Next dilemma →
               </NeonButton>
@@ -231,7 +251,7 @@ function Game({ players }: { players: Player[] }) {
 
       <button
         onClick={nextDilemma}
-        className="mt-8 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
+        className="mt-4 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
       >
         <RotateCcw size={13} /> skip dilemma
       </button>
@@ -262,17 +282,21 @@ function DilemmaPanel({ dilemma, votes, revealed, splitA, players, onVote }: Dil
   return (
     <div className="flex flex-col items-stretch gap-0 w-full">
       {/* Current player indicator */}
-      {!revealed && currentPlayer && (
-        <motion.p
-          key={currentPlayer.id}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center text-sm mb-3"
-          style={{ color: currentPlayer.color }}
-        >
-          {currentPlayer.name}, pick one:
-        </motion.p>
-      )}
+      <AnimatePresence mode="wait">
+        {!revealed && currentPlayer && (
+          <motion.p
+            key={currentPlayer.id}
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ type: "spring", stiffness: 320, damping: 24 }}
+            className="text-center text-sm mb-2 font-semibold"
+            style={{ color: currentPlayer.color }}
+          >
+            {currentPlayer.name}, pick one:
+          </motion.p>
+        )}
+      </AnimatePresence>
 
       {/* Option A */}
       <OptionCard
@@ -287,18 +311,25 @@ function DilemmaPanel({ dilemma, votes, revealed, splitA, players, onVote }: Dil
       />
 
       {/* OR divider */}
-      <div className="flex items-center justify-center py-3 z-10">
+      <div className="flex items-center justify-center py-2 z-10">
         <div className="flex-1 h-px bg-white/10" />
         <motion.span
+          initial={{ scale: 0, rotate: -90 }}
           animate={{
+            scale: 1,
+            rotate: 0,
             textShadow: [
               `0 0 12px ${ACCENT}`,
               `0 0 28px ${ACCENT}`,
               `0 0 12px ${ACCENT}`,
             ],
           }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          className="mx-4 font-display text-xl font-black tracking-widest select-none"
+          transition={{
+            scale: { type: "spring", stiffness: 360, damping: 16 },
+            rotate: { type: "spring", stiffness: 360, damping: 16 },
+            textShadow: { duration: 1.8, repeat: Infinity, ease: "easeInOut" },
+          }}
+          className="mx-4 font-display text-lg sm:text-xl font-black tracking-widest select-none"
           style={{ color: ACCENT }}
         >
           OR
@@ -350,20 +381,24 @@ function OptionCard({
     <GlassCard
       glow={hasVoters ? accent : undefined}
       className={cn(
-        "relative w-full cursor-pointer select-none overflow-hidden transition-all",
-        "rounded-2xl p-5 sm:p-6",
+        "group relative w-full cursor-pointer select-none overflow-hidden",
+        "rounded-2xl p-4 sm:p-5",
         disabled && "cursor-default",
-        !disabled && "hover:brightness-110 active:scale-[0.98]",
         hasVoters && !revealed && "ring-1 ring-white/20",
       )}
       onClick={disabled ? undefined : onClick}
+      whileHover={disabled ? {} : { scale: 1.015, y: -2 }}
       whileTap={disabled ? {} : { scale: 0.97 }}
+      transition={{ type: "spring", stiffness: 400, damping: 26 }}
       style={
         hasVoters
           ? { boxShadow: `0 0 0 2px ${accent}66, 0 0 40px -12px ${accent}` }
           : undefined
       }
     >
+      {/* Hover sheen sweep (tappable cards only) */}
+      {!disabled && <span className="sheen-overlay" aria-hidden />}
+
       {/* Crowd split bar — only visible after reveal */}
       <AnimatePresence>
         {revealed && (
@@ -378,15 +413,17 @@ function OptionCard({
         )}
       </AnimatePresence>
 
-      <div className="relative flex flex-col gap-3">
+      <div className="relative flex flex-col gap-2">
         {/* Label + text */}
         <div className="flex items-start gap-3">
-          <span
+          <motion.span
+            whileHover={disabled ? {} : { scale: 1.1, rotate: -6 }}
+            transition={{ type: "spring", stiffness: 400, damping: 18 }}
             className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black"
             style={{ background: accent, color: "#1a001a" }}
           >
             {label}
-          </span>
+          </motion.span>
           <p className="text-white text-base sm:text-lg font-medium leading-snug pt-0.5">
             {text}
           </p>
@@ -395,23 +432,30 @@ function OptionCard({
         {/* Voters + crowd split */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex flex-wrap gap-1.5">
-            {voters.map((p) => (
-              <motion.span
-                key={p.id}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-xs rounded-full px-2 py-0.5 font-semibold"
-                style={{ background: `${p.color}33`, color: p.color, border: `1px solid ${p.color}55` }}
-              >
-                {p.name}
-              </motion.span>
-            ))}
+            <AnimatePresence>
+              {voters.map((p) => (
+                <motion.span
+                  key={p.id}
+                  layout
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 380, damping: 18 }}
+                  className="text-xs rounded-full px-2 py-0.5 font-semibold"
+                  style={{ background: `${p.color}33`, color: p.color, border: `1px solid ${p.color}55` }}
+                >
+                  {p.name}
+                </motion.span>
+              ))}
+            </AnimatePresence>
           </div>
 
           {revealed && (
             <motion.span
-              initial={{ opacity: 0, x: 8 }}
-              animate={{ opacity: 1, x: 0 }}
+              key={splitPct}
+              initial={{ opacity: 0, scale: 1.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 16, delay: 0.25 }}
               className="text-sm font-bold tabular-nums"
               style={{ color: accent }}
             >

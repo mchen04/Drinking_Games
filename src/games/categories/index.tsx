@@ -5,7 +5,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { RotateCcw, Settings } from "lucide-react";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -157,27 +156,50 @@ function Categories({ players }: { players: Player[] }) {
   // back to the coral ACCENT for the urgent final stretch.
   const ringColor =
     fraction > 0.5 ? ACCENT : fraction > 0.25 ? "#ffb627" : ACCENT;
+  // Final-stretch urgency: ring pulses faster as the clock empties out.
+  const urgent = running && seconds <= 3 && seconds > 0;
 
   // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
   return (
-    <div className="flex flex-col items-center w-full max-w-lg mx-auto px-4">
-      <GameHeading
-        title="Categories"
-        subtitle="Name something in the category before the timer runs out!"
-        accent={ACCENT}
-      />
+    <div className="relative flex flex-col items-center w-full max-w-lg mx-auto px-4">
+      <motion.p
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="text-white/50 text-sm text-center mb-3"
+      >
+        Name something in the category before the timer runs out!
+      </motion.p>
 
-      {/* Player chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
-        {players.map((p, i) => (
-          <PlayerChip
-            key={p.id}
-            player={p}
-            active={i === turnIdx % players.length}
-          />
-        ))}
+      {/* Player chips — the active one is spotlit and pops on each turn-pass */}
+      <div className="flex flex-wrap justify-center gap-2 mb-3 sm:mb-4">
+        {players.map((p, i) => {
+          const isActive = i === turnIdx % players.length;
+          return (
+            <motion.div
+              key={p.id}
+              layout
+              animate={isActive ? { y: [0, -3, 0] } : { y: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              className="relative"
+            >
+              {isActive && (
+                <motion.span
+                  key={turnIdx}
+                  aria-hidden
+                  className="absolute -inset-1 rounded-full -z-10"
+                  initial={{ opacity: 0.7, scale: 0.8 }}
+                  animate={{ opacity: 0, scale: 1.5 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  style={{ background: p.color }}
+                />
+              )}
+              <PlayerChip player={p} active={isActive} />
+            </motion.div>
+          );
+        })}
       </div>
 
       {/* Category card */}
@@ -188,49 +210,78 @@ function Categories({ players }: { players: Player[] }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 260, damping: 22 }}
-          className="glass-strong rounded-3xl p-8 text-center w-full mb-8"
+          className="glass-strong rounded-3xl p-5 sm:p-6 text-center w-full mb-4"
           style={{ boxShadow: `0 0 48px -14px ${ACCENT}` }}
         >
-          <p className="text-xs font-display uppercase tracking-[0.22em] text-white/40 mb-3">
+          <p className="text-xs font-display uppercase tracking-[0.22em] text-white/40 mb-2">
             Category
           </p>
           <h2
-            className="font-display text-3xl sm:text-4xl text-white leading-tight"
+            className="font-display text-2xl sm:text-4xl text-white leading-tight"
             style={{ textShadow: `0 0 30px ${ACCENT}88` }}
           >
             {category}
           </h2>
-          <p className="mt-4 text-sm text-white/50">
-            <span style={{ color: activePlayer.color }}>{activePlayer.name}</span>
-            &apos;s turn — say something in this category!
+          <p className="mt-3 text-sm text-white/50">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={activePlayer.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="inline-block"
+              >
+                <span style={{ color: activePlayer.color }}>{activePlayer.name}</span>
+                &apos;s turn — say something in this category!
+              </motion.span>
+            </AnimatePresence>
           </p>
         </motion.div>
       </AnimatePresence>
 
       {/* Timer ring + controls row */}
-      <div className="flex flex-col sm:flex-row items-center gap-8 mb-8">
-        {/* Countdown ring — shared CircleProgress (size=96 → r=44, stroke=8) */}
-        <CircleProgress
-          fraction={fraction}
-          size={96}
-          stroke={8}
-          color={ringColor}
-          tween={0.3}
+      <div className="flex flex-col sm:flex-row items-center gap-5 sm:gap-8 mb-4">
+        {/* Countdown ring — shared CircleProgress (size=96 → r=44, stroke=8).
+            Breathes gently while running and beats hard in the final 3s. */}
+        <motion.div
+          animate={
+            urgent
+              ? { scale: [1, 1.09, 1] }
+              : running
+                ? { scale: [1, 1.025, 1] }
+                : { scale: 1 }
+          }
+          transition={
+            urgent
+              ? { duration: 0.5, repeat: Infinity, ease: "easeInOut" }
+              : running
+                ? { duration: 1, repeat: Infinity, ease: "easeInOut" }
+                : { duration: 0.3 }
+          }
         >
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={seconds}
-              initial={{ scale: 1.4, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.6, opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="font-display text-3xl text-white"
-              style={{ textShadow: `0 0 16px ${ringColor}` }}
-            >
-              {seconds}
-            </motion.span>
-          </AnimatePresence>
-        </CircleProgress>
+          <CircleProgress
+            fraction={fraction}
+            size={96}
+            stroke={8}
+            color={ringColor}
+            tween={0.3}
+          >
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={seconds}
+                initial={{ scale: 1.4, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="font-display text-3xl text-white"
+                style={{ textShadow: `0 0 16px ${ringColor}` }}
+              >
+                {seconds}
+              </motion.span>
+            </AnimatePresence>
+          </CircleProgress>
+        </motion.div>
 
         {/* Action buttons */}
         <div className="flex flex-col gap-3 items-center sm:items-start">
@@ -263,24 +314,25 @@ function Categories({ players }: { players: Player[] }) {
         </div>
       </div>
 
-      {/* Drink callout */}
-      <div className="min-h-[4rem] flex items-center justify-center mb-4">
-        <AnimatePresence>
-          {drinkMsg && (
-            <motion.div
-              key={drinkMsg}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <DrinkCallout text={drinkMsg} accent={ACCENT} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      {/* Drink callout — overlaid so it never reserves vertical space.
+          Shakes on entry (the "too slow / blanked" lose beat). */}
+      <AnimatePresence>
+        {drinkMsg && (
+          <motion.div
+            key={drinkMsg}
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1, x: [0, -10, 10, -6, 6, 0] }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-0 z-20"
+          >
+            <DrinkCallout text={drinkMsg} accent={ACCENT} />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* New category + settings row */}
-      <div className="flex items-center gap-4 mt-2">
+      <div className="flex items-center gap-4 mt-1">
         <NeonButton onClick={handleNewCategory} size="md" variant="ghost">
           <RotateCcw size={15} className="inline mr-1" /> New category
         </NeonButton>

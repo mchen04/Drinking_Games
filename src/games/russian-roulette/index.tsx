@@ -6,7 +6,6 @@ import { RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
 import {
   RequirePlayers,
-  GameHeading,
   PlayerChip,
   DrinkCallout,
   NeonButton,
@@ -73,21 +72,35 @@ function GlassIcon({
   const variant =
     state === "loaded" ? "loaded" : state === "safe" ? "safe" : "idle";
 
+  // Entrance variants participate in the parent tray's staggerChildren so the
+  // six glasses cascade in. Idle hidden glasses then breathe a subtle bob.
+  const entranceVariants = {
+    hidden: { opacity: 0, scale: 0.4, y: 18 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { type: "spring" as const, stiffness: 300, damping: 18 },
+    },
+  };
+
   return (
     <motion.button
-      variants={shakeVariants}
-      animate={variant}
+      variants={entranceVariants}
       onClick={handleClick}
       disabled={!active || state !== "hidden"}
-      whileHover={active && state === "hidden" ? { scale: 1.12 } : {}}
+      whileHover={active && state === "hidden" ? { scale: 1.12, y: -3 } : {}}
       whileTap={active && state === "hidden" ? { scale: 0.94 } : {}}
       className="relative flex flex-col items-center gap-1 focus:outline-none"
       style={{ cursor: active && state === "hidden" ? "pointer" : "default" }}
       aria-label={`Glass ${index + 1}`}
     >
-      {/* Shot glass SVG */}
+      {/* Shot glass SVG — the state-driven shake (loaded) / sigh (safe) lives here
+          so it never fights the entrance/hover transforms on the button. */}
       <motion.div
-        className="relative"
+        className="relative scale-90 sm:scale-100"
+        variants={shakeVariants}
+        animate={variant}
         style={{
           filter:
             state !== "picked"
@@ -95,6 +108,26 @@ function GlassIcon({
               : undefined,
         }}
       >
+        {/* Loaded flash — a sharp white/pink burst behind the glass on reveal */}
+        {state === "loaded" && (
+          <motion.span
+            className="absolute left-1/2 top-1/2 -z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background: "radial-gradient(circle, #ffffff 0%, #ff2d95 45%, transparent 70%)" }}
+            initial={{ scale: 0.2, opacity: 0 }}
+            animate={{ scale: [0.2, 2.2, 1.4], opacity: [0, 0.95, 0] }}
+            transition={{ duration: 0.7, ease: "easeOut", times: [0, 0.3, 1] }}
+          />
+        )}
+        {/* Safe — a calm teal ring expands outward (sigh of relief) */}
+        {state === "safe" && (
+          <motion.span
+            className="absolute left-1/2 top-1/2 -z-10 h-12 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ border: "2px solid #2de2c0" }}
+            initial={{ scale: 0.3, opacity: 0.8 }}
+            animate={{ scale: 2.4, opacity: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          />
+        )}
         <svg
           width="52"
           height="68"
@@ -265,15 +298,35 @@ function RouletteGame({ players }: { players: Player[] }) {
   const pickedCount = glasses.filter((g) => g === "picked" || g === "safe" || g === "loaded").length;
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Russian Roulette"
-        subtitle={`Round ${roundNum} · One glass is loaded — dare to pick?`}
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center w-full">
+      {/* Dynamic round label (distinct from the static game title in the shell header) */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-white/40 text-[0.7rem] uppercase tracking-[0.2em]">Round</span>
+        <AnimatePresence mode="popLayout">
+          <motion.span
+            key={roundNum}
+            initial={{ scale: 1.6, opacity: 0, y: -4 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.6, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 320, damping: 18 }}
+            className="font-display text-lg leading-none neon-text"
+            style={{ color: ACCENT }}
+          >
+            {roundNum}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+      <motion.p
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="text-white/50 text-sm text-center mb-3"
+      >
+        One glass is loaded — dare to pick?
+      </motion.p>
 
       {/* Player chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
+      <motion.div layout className="flex flex-wrap justify-center gap-2 mb-3">
         {players.map((p, i) => (
           <PlayerChip
             key={p.id}
@@ -281,28 +334,36 @@ function RouletteGame({ players }: { players: Player[] }) {
             active={phase === "picking" && i === turn % players.length}
           />
         ))}
+      </motion.div>
+
+      {/* Turn indicator (fixed slot so the grid never jumps) */}
+      <div className="h-6 mb-2 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {phase === "picking" && (
+            <motion.p
+              key={`turn-${turn}`}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              className="text-sm"
+            >
+              <span className="font-bold" style={{ color: currentPlayer.color }}>
+                {currentPlayer.name}
+              </span>
+              <span className="text-white/60"> — tap a glass</span>
+            </motion.p>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* Turn indicator */}
-      <AnimatePresence mode="wait">
-        {phase === "picking" && (
-          <motion.p
-            key={`turn-${turn}`}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="mb-5 text-sm"
-          >
-            <span className="font-bold" style={{ color: currentPlayer.color }}>
-              {currentPlayer.name}
-            </span>
-            <span className="text-white/60"> — tap a glass</span>
-          </motion.p>
-        )}
-      </AnimatePresence>
-
-      {/* Shot glasses grid */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-4 sm:gap-5 mb-8">
+      {/* Shot glasses grid — staggered cinematic entrance, re-keyed per round */}
+      <motion.div
+        key={`tray-${roundNum}`}
+        variants={{ show: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } } }}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4 mb-3"
+      >
         {glasses.map((state, i) => (
           <GlassIcon
             key={i}
@@ -312,43 +373,47 @@ function RouletteGame({ players }: { players: Player[] }) {
             onClick={() => pickGlass(i)}
           />
         ))}
-      </div>
+      </motion.div>
 
-      {/* Result / callout area */}
-      <div className="min-h-[7rem] w-full max-w-md flex flex-col items-center justify-center">
+      {/* Result / callout area — compact and in-flow. While picking it is just a
+          thin progress line; the result swaps in (turn + progress slots are empty
+          then) so the whole game stays on one screen without a tall fixed block. */}
+      <div className="w-full max-w-md flex items-center justify-center">
         <AnimatePresence mode="wait">
-          {phase === "result" && loser && (
+          {phase === "result" && loser ? (
             <motion.div
               key="result"
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0, scale: 0.85, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.85 }}
-              className="flex flex-col items-center gap-4"
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="flex flex-col items-center gap-2.5"
             >
               <DrinkCallout
                 text={`${loser.name} got it! DRINK!`}
                 accent="#ff2d95"
               />
-              <p className="text-white/55 text-sm text-center">
+              <p className="text-white/55 text-xs text-center">
                 {safeCount} glass{safeCount !== 1 ? "es" : ""} survived before the loaded one was found.
               </p>
-              <NeonButton onClick={reload} size="lg" variant="danger">
+              <NeonButton onClick={reload} size="md" variant="danger">
                 <RotateCcw size={16} className="inline mr-1.5" />
                 Reload &amp; continue
               </NeonButton>
             </motion.div>
-          )}
-
-          {phase === "picking" && pickedCount > 0 && (
+          ) : pickedCount > 0 ? (
             <motion.p
               key={`progress-${pickedCount}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="text-white/35 text-xs text-center"
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="h-5 text-white/35 text-xs text-center"
             >
               {NUM_GLASSES - pickedCount} glass{NUM_GLASSES - pickedCount !== 1 ? "es" : ""} remaining
             </motion.p>
+          ) : (
+            <div key="spacer" className="h-5" />
           )}
         </AnimatePresence>
       </div>

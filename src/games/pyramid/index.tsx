@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { createDeck, type Card } from "@/lib/deck";
-import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { PlayingCard, NeonButton, DrinkCallout } from "@/components/ui";
 import { celebrate } from "@/lib/confetti";
 import { sfx } from "@/lib/sound";
 import { useTimeouts } from "@/lib/timers";
@@ -94,21 +94,35 @@ export default function Pyramid() {
   }, [clearAll]);
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Pyramid"
-        subtitle="Flip cards bottom-up. Assign drinks — or bluff your rank!"
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center w-full">
+      <p className="text-white/50 text-sm text-center mb-2 sm:mb-3 max-w-xs">
+        Flip cards bottom-up. Assign drinks — or bluff your rank!
+      </p>
 
-      {/* Pyramid grid */}
-      <div className="flex flex-col items-center gap-1.5 mb-8">
+      {/* Pyramid grid — responsively scaled so it fits short/landscape viewports */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="flex flex-col items-center gap-1 sm:gap-1.5 mb-3 sm:mb-4 origin-top scale-[0.66] sm:scale-90 md:scale-100 [@media(max-height:560px)]:scale-[0.5] [@media(max-height:430px)]:scale-[0.42] -my-4 sm:-my-2 md:my-0"
+      >
         {[...ROW_SIZES].reverse().map((size, reversedIdx) => {
           // reversedIdx 0 = top row (row 4), reversedIdx 4 = bottom row (row 0)
           const row = ROW_SIZES.length - 1 - reversedIdx;
           const drinks = rowValue(row);
           return (
-            <div key={row} className="flex items-center gap-1.5">
+            <motion.div
+              key={row}
+              className="flex items-center gap-1 sm:gap-1.5"
+              initial={{ opacity: 0, y: -14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 0.1 + reversedIdx * 0.08,
+                type: "spring",
+                stiffness: 300,
+                damping: 24,
+              }}
+            >
               {Array.from({ length: size }).map((_, col) => {
                 const idx = cardIndex(row, col);
                 const isFlipped = idx < flippedCount;
@@ -126,11 +140,12 @@ export default function Pyramid() {
                       isCurrent
                         ? {
                             scale: 1.08,
-                            filter: `drop-shadow(0 0 12px ${ACCENT})`,
+                            y: -4,
+                            filter: `drop-shadow(0 0 14px ${ACCENT})`,
                           }
-                        : { scale: 1, filter: "none" }
+                        : { scale: 1, y: 0, filter: "none" }
                     }
-                    transition={{ type: "spring", stiffness: 280, damping: 20 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
                   >
                     <PlayingCard
                       card={card}
@@ -142,33 +157,46 @@ export default function Pyramid() {
                 );
               })}
               {/* drink value label on the right */}
-              <span
+              <motion.span
                 className="ml-1 text-xs font-semibold tabular-nums w-8"
                 style={{ color: `${ACCENT}cc` }}
+                animate={
+                  currentFlip !== null && currentFlip.row === row
+                    ? { scale: [1, 1.4, 1] }
+                    : { scale: 1 }
+                }
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
               >
                 {drinks}🍺
-              </span>
-            </div>
+              </motion.span>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       {/* Flip button / done state */}
       <AnimatePresence mode="wait">
         {done ? (
           <motion.div
             key="done"
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.85, y: 12 }}
+            animate={{ opacity: 1, scale: [0.85, 1.04, 1], y: 0 }}
             exit={{ opacity: 0 }}
-            className="glass-strong rounded-3xl p-6 text-center mb-6 w-full max-w-sm"
+            transition={{ type: "spring", stiffness: 320, damping: 16 }}
+            className="glass-strong rounded-3xl p-4 sm:p-5 text-center mb-3 w-full max-w-sm"
             style={{ boxShadow: `0 0 48px -10px ${ACCENT}` }}
           >
-            <div className="text-5xl mb-2">🔺</div>
-            <h3 className="font-display text-2xl neon-text mb-1" style={{ color: ACCENT }}>
+            <motion.div
+              className="text-4xl mb-1"
+              animate={{ y: [0, -6, 0], rotate: [0, -6, 6, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              🔺
+            </motion.div>
+            <h3 className="font-display text-xl sm:text-2xl neon-text mb-1" style={{ color: ACCENT }}>
               Pyramid cleared!
             </h3>
-            <p className="text-white/60 text-sm">
+            <p className="text-white/60 text-xs sm:text-sm">
               Every card has been revealed. Hope someone stayed honest.
             </p>
           </motion.div>
@@ -178,7 +206,7 @@ export default function Pyramid() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="flex flex-col items-center gap-4 mb-6"
+            className="flex flex-col items-center gap-2 mb-3"
           >
             <NeonButton
               onClick={flipNext}
@@ -188,15 +216,24 @@ export default function Pyramid() {
             >
               {flippedCount === 0 ? "Start — flip first card" : "Flip next card"}
             </NeonButton>
-            <p className="text-white/35 text-xs tabular-nums">
-              {flippedCount}/{FLIP_ORDER.length} flipped
+            <p className="text-white/35 text-xs tabular-nums flex items-center gap-1">
+              <motion.span
+                key={flippedCount}
+                initial={{ scale: 1.5, color: ACCENT }}
+                animate={{ scale: 1, color: "rgba(255,255,255,0.35)" }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                className="inline-block tabular-nums"
+              >
+                {flippedCount}
+              </motion.span>
+              /{FLIP_ORDER.length} flipped
             </p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Callout for the current flipped card */}
-      <div className="min-h-[5rem] w-full max-w-md flex flex-col items-center justify-center">
+      <div className="min-h-[4rem] w-full max-w-md flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
           {currentCard && !done && (
             <motion.div
@@ -205,7 +242,7 @@ export default function Pyramid() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -14 }}
               transition={{ type: "spring", stiffness: 300, damping: 22 }}
-              className="flex flex-col items-center gap-3 w-full"
+              className="flex flex-col items-center gap-2 w-full"
             >
               <DrinkCallout
                 text={`Assign ${currentDrinks} drink${currentDrinks > 1 ? "s" : ""} — or bluff!`}
@@ -232,12 +269,13 @@ export default function Pyramid() {
       </div>
 
       {/* Reset */}
-      <button
+      <motion.button
         onClick={reset}
-        className="mt-6 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        whileTap={{ scale: 0.94 }}
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> new pyramid
-      </button>
+      </motion.button>
     </div>
   );
 }

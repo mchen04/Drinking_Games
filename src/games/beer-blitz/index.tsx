@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw, Heart } from "lucide-react";
-import { NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { NeonButton, DrinkCallout } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { pop, drinkRain } from "@/lib/confetti";
 import { useBeerFill, type Phase } from "./useBeerFill";
@@ -160,49 +160,95 @@ export default function BeerBlitz() {
   const isGameOver = phase === "gameover";
 
   return (
-    <div className="flex flex-col items-center select-none">
-      <GameHeading
-        title="Beer Blitz"
-        subtitle="Stop the pour inside the purple band — or take a drink!"
-        accent={ACCENT}
-      />
+    <div className="flex flex-col items-center select-none w-full">
+      <motion.p
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="text-white/50 text-sm text-center mb-3"
+      >
+        Stop the pour inside the{" "}
+        <span style={{ color: ACCENT }}>purple band</span> — or take a drink!
+      </motion.p>
 
       {/* Stats row */}
-      <div className="flex items-center gap-5 mb-6 text-sm">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+        className="flex items-center gap-4 mb-3 text-sm"
+      >
         {/* Lives */}
         <div className="flex items-center gap-1">
-          {Array.from({ length: MAX_LIVES }).map((_, i) => (
-            <Heart
-              key={i}
-              size={18}
-              fill={i < lives ? ACCENT : "transparent"}
-              stroke={i < lives ? ACCENT : "#ffffff40"}
-              className="transition-all duration-300"
-            />
-          ))}
+          {Array.from({ length: MAX_LIVES }).map((_, i) => {
+            const alive = i < lives;
+            return (
+              <motion.span
+                key={i}
+                animate={
+                  alive
+                    ? { scale: 1, opacity: 1 }
+                    : { scale: [1, 0.4, 0.85], opacity: 0.4 }
+                }
+                transition={{ type: "spring", stiffness: 320, damping: 16 }}
+              >
+                <Heart
+                  size={18}
+                  fill={alive ? ACCENT : "transparent"}
+                  stroke={alive ? ACCENT : "#ffffff40"}
+                />
+              </motion.span>
+            );
+          })}
         </div>
-        <span className="text-white/50">|</span>
-        <span className="text-white/60">
-          score <b className="text-white">{score}</b>
+        <span className="text-white/40">|</span>
+        <span className="text-white/60 tabular-nums">
+          score{" "}
+          <motion.b
+            key={score}
+            initial={{ scale: 1.5, color: "#b6ff3c" }}
+            animate={{ scale: 1, color: "#ffffff" }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="inline-block text-white"
+          >
+            {score}
+          </motion.b>
         </span>
-        <span className="text-white/60">
+        <span className="text-white/60 tabular-nums">
           best{" "}
-          <b style={{ color: "#ffb627" }}>{best}</b>
+          <motion.b
+            key={`best-${best}`}
+            initial={{ scale: 1.4 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="inline-block"
+            style={{ color: "#ffb627" }}
+          >
+            {best}
+          </motion.b>
         </span>
-      </div>
+      </motion.div>
 
       {/* Glass + controls */}
       <AnimatePresence mode="wait">
         {isGameOver ? (
           <motion.div
             key="gameover"
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="glass-strong rounded-3xl p-8 flex flex-col items-center gap-4 text-center max-w-xs w-full"
+            initial={{ opacity: 0, scale: 0.85, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 280, damping: 22 }}
+            className="glass-strong rounded-3xl p-6 flex flex-col items-center gap-3 text-center max-w-xs w-full"
             style={{ boxShadow: `0 0 60px -12px ${ACCENT}` }}
           >
-            <div className="text-5xl">🍺</div>
+            <motion.div
+              className="text-5xl"
+              initial={{ scale: 0, rotate: -25 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 14, delay: 0.08 }}
+            >
+              🍺
+            </motion.div>
             <h3 className="font-display text-3xl neon-text" style={{ color: ACCENT }}>
               Game Over
             </h3>
@@ -228,24 +274,43 @@ export default function BeerBlitz() {
         ) : (
           <motion.div
             key="game"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center gap-6 w-full max-w-xs"
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 24 }}
+            className="flex flex-col items-center gap-3 w-full max-w-xs"
           >
-            {/* The glass */}
-            <GlassDisplay
-              fillPct={fillPct}
-              phase={phase}
-              glassControls={glassControls}
-            />
+            {/* The glass — scaled down on short/landscape viewports so the
+                fixed 280px visual never blows past the one-screen budget.
+                The internal px geometry is untouched; only the render scales.
+                The outer box is sized to the SCALED footprint so transform
+                whitespace doesn't leak into flow and break the fit. */}
+            <div className="h-[174px] sm:h-[252px] lg:h-[280px] flex items-start">
+              <div className="origin-top scale-[0.62] sm:scale-90 lg:scale-100">
+                <GlassDisplay
+                  fillPct={fillPct}
+                  phase={phase}
+                  glassControls={glassControls}
+                />
+              </div>
+            </div>
 
             {/* Speed label */}
-            <p className="text-xs text-white/35 -mt-2">
-              speed <span style={{ color: ACCENT }}>{Math.round(speed)}%/s</span>
+            <p className="text-xs text-white/35">
+              speed{" "}
+              <motion.span
+                key={Math.round(speed)}
+                initial={{ scale: 1.3, opacity: 0.6 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 320, damping: 18 }}
+                className="inline-block font-semibold"
+                style={{ color: ACCENT }}
+              >
+                {Math.round(speed)}%/s
+              </motion.span>
             </p>
 
             {/* STOP button or feedback */}
-            <div className="h-20 flex flex-col items-center justify-center">
+            <div className="h-16 flex flex-col items-center justify-center">
               <AnimatePresence mode="wait">
                 {phase === "idle" && (
                   <motion.div
@@ -314,18 +379,6 @@ export default function BeerBlitz() {
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Instruction hint */}
-            {phase === "idle" && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs text-white/30 text-center max-w-[200px]"
-              >
-                Tap POUR to start filling, then STOP it inside the{" "}
-                <span style={{ color: ACCENT }}>purple band</span>.
-              </motion.p>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -334,7 +387,7 @@ export default function BeerBlitz() {
       {!isGameOver && (
         <button
           onClick={resetGame}
-          className="mt-8 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
+          className="mt-3 flex items-center gap-1.5 text-xs text-white/25 hover:text-white/60 transition-colors"
         >
           <RotateCcw size={12} /> restart
         </button>

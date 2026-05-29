@@ -6,7 +6,6 @@ import { Users } from "lucide-react";
 import {
   PromptDeck,
   RequirePlayers,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
 } from "@/components/ui";
@@ -52,13 +51,12 @@ function Game({ players }: { players: Player[] }) {
   );
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <GameHeading
-        title="Most Likely To"
-        subtitle="On three — everyone points at the most likely person. Most fingers = drink!"
-        accent={ACCENT}
-      />
-
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="flex flex-col items-center w-full"
+    >
       <Instruction />
 
       <PromptDeck
@@ -69,26 +67,24 @@ function Game({ players }: { players: Player[] }) {
         onNext={clearVote}
         footer={footer}
       />
-    </div>
+    </motion.div>
   );
 }
 
 function Instruction() {
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8 }}
+      initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.15 }}
-      className="glass rounded-2xl px-4 py-3 flex items-start gap-3 max-w-sm w-full mb-6 text-sm text-white/70"
-      style={{ boxShadow: `0 0 24px -10px ${ACCENT}` }}
+      transition={{ delay: 0.12, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="flex items-center justify-center gap-2 max-w-sm w-full mb-3 text-sm text-white/55 text-center"
     >
-      <Users size={16} className="shrink-0 mt-0.5" style={{ color: ACCENT }} />
+      <Users size={15} className="shrink-0" style={{ color: ACCENT }} />
       <span>
-        Read the prompt aloud. On{" "}
-        <span className="text-white font-semibold">3 — everyone points</span> at
-        who fits best. Most fingers pointed wins the shame.{" "}
+        On <span className="text-white/80 font-semibold">3 — everyone points</span>.
+        Most fingers ={" "}
         <span style={{ color: ACCENT }} className="font-semibold">
-          That person drinks.
+          drink.
         </span>
       </span>
     </motion.div>
@@ -105,50 +101,77 @@ interface VotePanelProps {
 
 function VotePanel({ players, loser, showDrink, onVote, onClear }: VotePanelProps) {
   return (
-    <div className="mt-6 w-full max-w-xl mx-auto">
+    <div className="mt-4 w-full max-w-xl mx-auto">
       {/* Section label */}
-      <p className="text-center text-xs text-white/40 uppercase tracking-widest mb-3">
+      <p className="text-center text-xs text-white/40 uppercase tracking-widest mb-2.5">
         Who got the most fingers?
       </p>
 
       {/* Player chips — tap to crown the loser */}
-      <div className="flex flex-wrap justify-center gap-2 mb-4">
-        {players.map((p) => (
-          <button
-            key={p.id}
-            onClick={() => {
-              if (loser?.id === p.id) {
-                onClear();
-              } else {
-                onVote(p);
+      <motion.div
+        className="flex flex-wrap justify-center gap-2"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.04 } },
+        }}
+      >
+        {players.map((p) => {
+          const isLoser = loser?.id === p.id;
+          return (
+            <motion.button
+              key={p.id}
+              layout
+              variants={{
+                hidden: { opacity: 0, y: 8, scale: 0.9 },
+                show: { opacity: 1, y: 0, scale: 1 },
+              }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
+              whileTap={{ scale: 0.9 }}
+              animate={
+                isLoser
+                  ? { x: [0, -8, 8, -5, 5, 0] }
+                  : { x: 0 }
               }
-            }}
-            className="transition-transform active:scale-95"
-          >
-            <PlayerChip player={p} active={loser?.id === p.id} />
-          </button>
-        ))}
-      </div>
+              onClick={() => {
+                if (isLoser) {
+                  onClear();
+                } else {
+                  onVote(p);
+                }
+              }}
+            >
+              <PlayerChip player={p} active={isLoser} />
+            </motion.button>
+          );
+        })}
+      </motion.div>
 
-      {/* Drink callout */}
-      <div className="min-h-[4rem] flex items-center justify-center">
+      {/* Drink callout — minimal reserved height, callout pops in place */}
+      <div className="relative mt-3 flex items-start justify-center min-h-[3.25rem]">
         <AnimatePresence mode="wait">
           {showDrink && loser && (
             <motion.div
               key={loser.id}
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.7 }}
-              transition={{ type: "spring", stiffness: 320, damping: 18 }}
-              className="flex flex-col items-center gap-2"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center gap-1"
             >
-              <DrinkCallout
-                text={`${loser.name} drinks! 👆`}
-                accent={ACCENT}
-              />
-              <p className="text-xs text-white/40">
-                Tap their name again to undo
-              </p>
+              <motion.span
+                key={`burst-${loser.id}`}
+                aria-hidden
+                className="absolute -top-1 text-2xl pointer-events-none"
+                initial={{ opacity: 0, scale: 0.4, y: 4 }}
+                animate={{ opacity: [0, 1, 0], scale: [0.4, 1.6, 1.9], y: [-2, -22, -34] }}
+                transition={{ duration: 0.9, ease: "easeOut" }}
+              >
+                👆
+              </motion.span>
+              <DrinkCallout text={`${loser.name} drinks!`} accent={ACCENT} />
+              <p className="text-xs text-white/40">Tap their name again to undo</p>
             </motion.div>
           )}
         </AnimatePresence>

@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, Timer } from "lucide-react";
-import { NeonButton, RequirePlayers, GameHeading, DrinkCallout } from "@/components/ui";
+import { NeonButton, RequirePlayers, DrinkCallout } from "@/components/ui";
 import type { Player } from "@/store/players";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
@@ -30,15 +30,16 @@ interface Team {
 
 type Phase = "ready" | "racing" | "won";
 
-function Cup({ done, active, flipping }: { done: boolean; active: boolean; flipping: boolean }) {
+function Cup({ done, active, flipping, color }: { done: boolean; active: boolean; flipping: boolean; color: string }) {
   const controls = useAnimationControls();
 
   useEffect(() => {
     if (flipping) {
       void controls.start({
-        rotate: [0, -30, 160, 180],
-        y: [0, -12, -6, 0],
-        transition: { duration: 0.45, ease: "easeInOut" },
+        rotate: [0, -28, 160, 180],
+        y: [0, -16, -8, 0],
+        scale: [1, 1.18, 1.06, 1],
+        transition: { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] },
       });
     }
   }, [flipping, controls]);
@@ -47,12 +48,26 @@ function Cup({ done, active, flipping }: { done: boolean; active: boolean; flipp
     <motion.div
       animate={controls}
       className={cn(
-        "w-8 h-10 sm:w-10 sm:h-12 rounded-b-xl border-2 transition-colors duration-300 flex items-end justify-center pb-1",
+        "w-8 h-10 sm:w-10 sm:h-12 rounded-b-xl border-2 transition-colors duration-300 flex items-end justify-center pb-1 will-change-transform",
         done ? "border-white/60 bg-white/20" : active ? "border-current bg-current/30" : "border-white/20 bg-white/5",
       )}
-      style={active && !done ? { borderColor: ACCENT, background: `${ACCENT}33` } : undefined}
+      style={{
+        transformStyle: "preserve-3d",
+        ...(active && !done
+          ? { borderColor: color, background: `${color}33`, boxShadow: `0 0 14px -2px ${color}99` }
+          : {}),
+      }}
     >
-      {done && <span className="text-xs leading-none">✅</span>}
+      {done && (
+        <motion.span
+          initial={{ scale: 0, rotate: -40 }}
+          animate={{ scale: [0, 1.4, 1], rotate: 0 }}
+          transition={{ type: "spring", stiffness: 320, damping: 14 }}
+          className="text-xs leading-none"
+        >
+          ✅
+        </motion.span>
+      )}
     </motion.div>
   );
 }
@@ -72,26 +87,41 @@ function Lane({ team, progress, flippingIdx, canFlip, onFlip }: LaneProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 180, damping: 20 }}
-      className="glass-strong rounded-3xl p-4 sm:p-6 flex flex-col items-center gap-4 w-full"
-      style={{ boxShadow: done ? `0 0 40px -10px ${team.color}` : undefined }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        scale: done ? [1, 1.04, 1] : 1,
+      }}
+      transition={{ type: "spring", stiffness: 200, damping: 20 }}
+      className="glass-strong rounded-3xl p-3 sm:p-4 flex flex-col items-center gap-2.5 w-full"
+      style={{ boxShadow: done ? `0 0 40px -8px ${team.color}` : undefined }}
     >
       <div className="flex items-center gap-2">
         <span
           className="w-3 h-3 rounded-full"
           style={{ background: team.color, boxShadow: `0 0 8px 2px ${team.color}88` }}
         />
-        <span className="font-display text-lg text-white">{team.name}</span>
-        <span className="text-xs text-white/40 ml-1">
-          {progress}/{team.players.length}
+        <span className="font-display text-base sm:text-lg text-white">{team.name}</span>
+        <span className="text-xs text-white/40 ml-1 tabular-nums">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.span
+              key={progress}
+              initial={{ scale: 1.6, opacity: 0, color: team.color }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 16 }}
+              className="inline-block"
+            >
+              {progress}
+            </motion.span>
+          </AnimatePresence>
+          /{team.players.length}
         </span>
       </div>
 
       <div className="flex gap-1.5 sm:gap-2 flex-wrap justify-center">
         {team.players.map((p, i) => (
           <div key={p.id} className="flex flex-col items-center gap-1">
-            <Cup done={i < progress} active={i === progress} flipping={flippingIdx === i} />
+            <Cup done={i < progress} active={i === progress} flipping={flippingIdx === i} color={team.color} />
             <span
               className="text-[9px] sm:text-[10px] max-w-[2.5rem] truncate text-center leading-none"
               style={{ color: i < progress ? "rgba(255,255,255,0.35)" : i === progress ? team.color : "rgba(255,255,255,0.45)" }}
@@ -102,16 +132,23 @@ function Lane({ team, progress, flippingIdx, canFlip, onFlip }: LaneProps) {
         ))}
       </div>
 
-      <div className="h-5 text-sm">
+      <div className="h-5 text-sm flex items-center">
         {!done && currentPlayer && (
-          <span className="text-white/70">
+          <motion.span
+            key={currentPlayer.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="text-white/70"
+          >
             Up: <b style={{ color: team.color }}>{currentPlayer.name}</b>
-          </span>
+          </motion.span>
         )}
         {done && (
           <motion.span
             initial={{ opacity: 0, scale: 0.7 }}
-            animate={{ opacity: 1, scale: 1 }}
+            animate={{ opacity: 1, scale: [0.7, 1.15, 1] }}
+            transition={{ type: "spring", stiffness: 300, damping: 14 }}
             className="font-display text-base"
             style={{ color: team.color }}
           >
@@ -122,7 +159,7 @@ function Lane({ team, progress, flippingIdx, canFlip, onFlip }: LaneProps) {
 
       <NeonButton
         onClick={onFlip}
-        size="lg"
+        size="md"
         variant="success"
         disabled={!canFlip || done}
         className="w-full sm:w-auto"
@@ -230,44 +267,62 @@ function Race({ players }: { players: Player[] }) {
   const [t1, t2] = teams.current;
 
   return (
-    <div className="flex flex-col items-center w-full max-w-2xl mx-auto">
-      <GameHeading
-        title="Flip Cup"
-        subtitle="Chug → set cup on edge → flip it upside-down. First team through all players wins!"
-        accent={ACCENT}
-      />
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="relative flex flex-col items-center w-full max-w-2xl mx-auto"
+    >
+      <p className="text-white/50 text-sm text-center mb-2">
+        Chug → set cup on edge → flip it upside-down. First team through all players wins!
+      </p>
 
       {/* Timer */}
-      {(phase === "racing" || phase === "won") && (
-        <div className="flex items-center gap-1.5 text-sm text-white/50 mb-4">
-          <Timer size={14} style={{ color: ACCENT }} />
-          <span style={{ color: ACCENT }} className="font-mono font-semibold">
-            {formatTime(elapsed)}
-          </span>
-        </div>
-      )}
+      <div className="h-5 mb-2 flex items-center">
+        <AnimatePresence>
+          {(phase === "racing" || phase === "won") && (
+            <motion.div
+              key="timer"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="flex items-center gap-1.5 text-sm text-white/50"
+            >
+              <Timer size={14} style={{ color: ACCENT }} />
+              <span style={{ color: ACCENT }} className="font-mono font-semibold tabular-nums">
+                {formatTime(elapsed)}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Ready state */}
-      {phase === "ready" && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass rounded-3xl p-6 text-center mb-6 max-w-sm w-full"
-        >
-          <p className="text-white/70 mb-2 text-sm leading-relaxed">
-            Teams are set. Each player chugs, places their cup on the table edge,
-            and flips it upside-down. <span className="text-white">Tap your team&apos;s FLIP button when your cup lands!</span>
-          </p>
-          <div className="flex gap-3 justify-center mt-4 text-xs text-white/50">
-            <span style={{ color: t1.color }}>● {t1.name}</span>
-            <span>vs</span>
-            <span style={{ color: t2.color }}>● {t2.name}</span>
-          </div>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {phase === "ready" && (
+          <motion.div
+            key="ready"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            className="glass rounded-3xl p-4 text-center mb-3 max-w-sm w-full"
+          >
+            <p className="text-white/70 text-sm leading-relaxed">
+              Teams are set. Each player chugs, places their cup on the table edge,
+              and flips it upside-down. <span className="text-white">Tap your team&apos;s FLIP button when your cup lands!</span>
+            </p>
+            <div className="flex gap-3 justify-center mt-3 text-xs text-white/50">
+              <span style={{ color: t1.color }}>● {t1.name}</span>
+              <span>vs</span>
+              <span style={{ color: t2.color }}>● {t2.name}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Race lanes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full mb-3">
         <Lane
           team={t1}
           progress={progress[0]}
@@ -284,28 +339,8 @@ function Race({ players }: { players: Player[] }) {
         />
       </div>
 
-      {/* Win callout */}
-      <div className="h-16 flex items-center justify-center">
-        <AnimatePresence>
-          {phase === "won" && winner && showDrink && (
-            <motion.div
-              key="winner"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-3"
-            >
-              <DrinkCallout
-                text={`🏆 ${winner.name} wins! Losers drink!`}
-                accent={winner.color}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
       {/* Action buttons */}
-      <div className="flex gap-3 mt-2">
+      <div className="flex gap-3">
         {phase === "ready" && (
           <NeonButton onClick={startRace} size="lg" variant="primary">
             Start Race!
@@ -322,21 +357,49 @@ function Race({ players }: { players: Player[] }) {
       </div>
 
       {/* Team rosters preview */}
-      {phase === "ready" && (
-        <div className="flex gap-6 mt-6 text-xs text-white/40">
-          <div>
-            <span style={{ color: t1.color }} className="font-semibold">{t1.name}</span>
-            {": "}
-            {t1.players.map((p) => p.name).join(", ")}
-          </div>
-          <div>
-            <span style={{ color: t2.color }} className="font-semibold">{t2.name}</span>
-            {": "}
-            {t2.players.map((p) => p.name).join(", ")}
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {phase === "ready" && (
+          <motion.div
+            key="rosters"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 0.1 }}
+            className="flex flex-wrap gap-x-6 gap-y-1 justify-center mt-3 text-xs text-white/40"
+          >
+            <div>
+              <span style={{ color: t1.color }} className="font-semibold">{t1.name}</span>
+              {": "}
+              {t1.players.map((p) => p.name).join(", ")}
+            </div>
+            <div>
+              <span style={{ color: t2.color }} className="font-semibold">{t2.name}</span>
+              {": "}
+              {t2.players.map((p) => p.name).join(", ")}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Win callout — overlaid so it doesn't reserve fixed height */}
+      <AnimatePresence>
+        {phase === "won" && winner && showDrink && (
+          <motion.div
+            key="winner"
+            initial={{ opacity: 0, y: 16, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: [0.85, 1.06, 1] }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            className="absolute inset-x-0 bottom-0 z-20 flex justify-center px-2"
+          >
+            <DrinkCallout
+              text={`🏆 ${winner.name} wins! Losers drink!`}
+              accent={winner.color}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

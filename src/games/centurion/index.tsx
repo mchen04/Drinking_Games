@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw, Play, Pause } from "lucide-react";
-import { NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { NeonButton, DrinkCallout } from "@/components/ui";
 import { CircleProgress } from "@/components/ui/CircleProgress";
 import { sfx } from "@/lib/sound";
 import { celebrate } from "@/lib/confetti";
@@ -130,66 +130,107 @@ export default function Centurion() {
   const isDone = phase === "done";
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Centurion"
-        subtitle="One shot of beer every 60 seconds. Reach the target to earn legend status."
-        accent={ACCENT}
-      />
+    <motion.div
+      className="flex flex-col items-center w-full"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <p className="text-white/50 text-sm text-center mb-3">
+        One shot of beer every 60 seconds. Reach the target to earn legend status.
+      </p>
 
       {/* Target selector */}
-      <div className="flex gap-2 mb-8 glass rounded-full p-1">
+      <div className="flex gap-1.5 mb-3 glass rounded-full p-1">
         {TARGET_OPTIONS.map((t) => (
           <button
             key={t}
             onClick={() => pickTarget(t)}
             disabled={isRunning}
             className={cn(
-              "px-4 py-2 rounded-full text-sm font-semibold transition-colors",
+              "relative px-4 py-1.5 rounded-full text-sm font-semibold transition-colors",
               target === t ? "text-ink" : "text-white/60",
               target !== t && !isRunning && "hover:text-white",
             )}
-            style={target === t ? { background: ACCENT } : undefined}
           >
-            {t}
+            {target === t && (
+              <motion.span
+                layoutId="centurion-target-pill"
+                className="absolute inset-0 rounded-full"
+                style={{ background: ACCENT }}
+                transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              />
+            )}
+            <span className="relative z-10">{t}</span>
           </button>
         ))}
       </div>
 
-      {/* Main display */}
-      <CircleProgress
-        fraction={circularPct}
-        size={180}
-        stroke={10}
-        color={ACCENT}
-        trackColor="rgba(255,255,255,0.08)"
-        tween={0.9}
-        className="mb-8"
-      >
-        <div className="flex flex-col items-center justify-center gap-0.5">
-          <motion.span
-            animate={shotControls}
-            className="text-5xl leading-none select-none"
-            style={{ filter: flash ? `drop-shadow(0 0 12px ${ACCENT})` : undefined }}
-          >
-            🥃
-          </motion.span>
-          <span className="font-display text-white font-bold text-xl leading-none mt-1">
-            {elapsed}s
-          </span>
-          <span className="text-white/40 text-xs">next shot</span>
-        </div>
-      </CircleProgress>
+      {/* Main display — ring scales down for short landscape viewports */}
+      <div className="relative scale-[0.82] sm:scale-100 mb-2 sm:mb-3">
+        <CircleProgress
+          fraction={circularPct}
+          size={160}
+          stroke={10}
+          color={ACCENT}
+          trackColor="rgba(255,255,255,0.08)"
+          tween={0.9}
+        >
+          <div className="flex flex-col items-center justify-center gap-0.5">
+            <motion.span
+              animate={shotControls}
+              className="text-4xl sm:text-5xl leading-none select-none"
+              style={{ filter: flash ? `drop-shadow(0 0 14px ${ACCENT})` : undefined }}
+            >
+              🥃
+            </motion.span>
+            <motion.span
+              key={elapsed}
+              initial={{ scale: 1.25, opacity: 0.6 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 340, damping: 22 }}
+              className="font-display text-white font-bold text-xl leading-none mt-1"
+            >
+              {elapsed}s
+            </motion.span>
+            <span className="text-white/40 text-xs">next shot</span>
+          </div>
+        </CircleProgress>
+
+        {/* Milestone flare — overlaid on the ring, no reserved height */}
+        <AnimatePresence>
+          {flash && !isDone && (
+            <motion.span
+              key={`flare-${shot}`}
+              className="pointer-events-none absolute inset-0 rounded-full"
+              initial={{ opacity: 0.7, scale: 0.9 }}
+              animate={{ opacity: 0, scale: 1.6 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              style={{ boxShadow: `0 0 40px 8px ${ACCENT}` }}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Overall progress bar */}
       <div className="w-full max-w-sm mb-2">
         <div className="flex justify-between text-xs text-white/50 mb-1.5">
           <span>shots taken</span>
           <span style={{ color: ACCENT }}>
-            {shot} / {target}
+            <motion.span
+              key={shot}
+              initial={{ scale: 1.5, opacity: 0.5 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+              className="inline-block font-bold tabular-nums"
+            >
+              {shot}
+            </motion.span>
+            {" "}/ {target}
           </span>
         </div>
-        <div className="h-3 glass rounded-full overflow-hidden">
+        <div className="h-2.5 glass rounded-full overflow-hidden">
           <motion.div
             className="h-full rounded-full"
             style={{ background: `linear-gradient(90deg, ${ACCENT}, #c77dff)` }}
@@ -203,44 +244,8 @@ export default function Centurion() {
         </div>
       </div>
 
-      {/* Shot flash callout */}
-      <div className="h-14 flex items-center justify-center mb-4 w-full">
-        <AnimatePresence mode="wait">
-          {isDone ? (
-            <motion.div
-              key="done"
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="glass-strong rounded-3xl px-6 py-3 text-center"
-              style={{ boxShadow: `0 0 48px -10px ${ACCENT}` }}
-            >
-              <span
-                className="font-display text-xl font-bold"
-                style={{ color: ACCENT }}
-              >
-                Centurion! 💯 Legend status.
-              </span>
-            </motion.div>
-          ) : flash ? (
-            <motion.div
-              key={`shot-${shot}`}
-              initial={{ opacity: 0, y: -10, scale: 0.85 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.18 }}
-            >
-              <DrinkCallout
-                text={`SHOT #${shot} 🥃`}
-                accent={ACCENT}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
-
       {/* Controls */}
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center mt-1">
         {!isRunning ? (
           <NeonButton
             onClick={handleStart}
@@ -266,7 +271,7 @@ export default function Centurion() {
       </div>
 
       {/* Status label */}
-      <p className="mt-6 text-sm text-white/35 text-center">
+      <p className="mt-3 text-sm text-white/35 text-center px-2">
         {isDone
           ? `You survived ${target} shots in ${target} minutes. Absolute legend.`
           : phase === "paused"
@@ -275,6 +280,38 @@ export default function Centurion() {
           ? `Complete ${target} shots, one per minute. Press Start when ready.`
           : `Shot ${shot} complete. Shot ${shot + 1} due in ${60 - elapsed}s.`}
       </p>
-    </div>
+
+      {/* Transient callouts — overlaid, never reserve vertical space */}
+      <AnimatePresence>
+        {isDone ? (
+          <motion.div
+            key="done"
+            className="pointer-events-none fixed inset-x-0 top-[42%] z-30 flex justify-center px-4"
+            initial={{ opacity: 0, scale: 0.7, y: -8 }}
+            animate={{ opacity: 1, scale: [0.7, 1.08, 1], y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 280, damping: 18 }}
+          >
+            <span
+              className="glass-strong rounded-3xl px-6 py-3 text-center font-display text-xl font-bold"
+              style={{ color: ACCENT, boxShadow: `0 0 48px -10px ${ACCENT}` }}
+            >
+              Centurion! 💯 Legend status.
+            </span>
+          </motion.div>
+        ) : flash ? (
+          <motion.div
+            key={`shot-${shot}`}
+            className="pointer-events-none fixed inset-x-0 top-[38%] z-30 flex justify-center px-4"
+            initial={{ opacity: 0, y: -14, scale: 0.85 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.92 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
+            <DrinkCallout text={`SHOT #${shot} 🥃`} accent={ACCENT} />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </motion.div>
   );
 }

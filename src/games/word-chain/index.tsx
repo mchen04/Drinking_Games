@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
   NeonButton,
-  GameHeading,
   DrinkCallout,
   PlayerChip,
   RequirePlayers,
@@ -191,26 +190,48 @@ function Game({ players }: { players: Player[] }) {
     timeLeft <= 2 ? "#ff5e5b" : timeLeft <= 3 ? "#ffb627" : "#2de2c0";
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Word Association"
-        subtitle="Say a word linked to the last one. Hesitate or repeat = drink!"
-        accent={ACCENT}
-      />
+    <motion.div
+      className="relative flex flex-col items-center w-full"
+      initial="hidden"
+      animate="show"
+      variants={{
+        hidden: {},
+        show: { transition: { staggerChildren: 0.07, delayChildren: 0.04 } },
+      }}
+    >
+      {/* Compact rule line (game title lives in the shell header) */}
+      <motion.p
+        variants={ITEM_VARIANTS}
+        className="text-white/50 text-sm text-center mb-3"
+      >
+        Say a word linked to the last one. Hesitate or repeat = drink!
+      </motion.p>
 
-      {/* Player chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-6">
-        {players.map((p, i) => (
-          <PlayerChip
-            key={p.id}
-            player={p}
-            active={!penalty && i === turnIndex % players.length}
-          />
-        ))}
-      </div>
+      {/* Player chips — turn passes ripple across the roster */}
+      <motion.div
+        variants={ITEM_VARIANTS}
+        className="flex flex-wrap justify-center gap-2 mb-3"
+      >
+        {players.map((p, i) => {
+          const isActive = !penalty && i === turnIndex % players.length;
+          return (
+            <motion.div
+              key={p.id}
+              layout
+              animate={isActive ? { y: [0, -4, 0] } : { y: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 18 }}
+            >
+              <PlayerChip player={p} active={isActive} />
+            </motion.div>
+          );
+        })}
+      </motion.div>
 
       {/* Current word + countdown ring */}
-      <div className="flex flex-col items-center gap-4 mb-6">
+      <motion.div
+        variants={ITEM_VARIANTS}
+        className="relative flex flex-col items-center gap-3 mb-3"
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={currentWord}
@@ -218,42 +239,69 @@ function Game({ players }: { players: Player[] }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.85 }}
             transition={{ type: "spring", stiffness: 340, damping: 24 }}
-            className="text-5xl sm:text-6xl font-display font-bold text-white neon-text"
+            className="text-4xl sm:text-6xl font-display font-bold text-white neon-text"
             style={{ textShadow: `0 0 32px ${ACCENT}` }}
           >
             {currentWord}
           </motion.div>
         </AnimatePresence>
 
-        {/* Countdown ring */}
-        <CircleProgress
-          fraction={ringFraction}
-          size={64}
-          stroke={5}
-          color={ringColor}
-          tween={0.25}
+        {/* Countdown ring — shakes when the clock runs out */}
+        <motion.div
+          animate={penalty === "timeout" ? { x: [0, -10, 10, -6, 6, 0] } : { x: 0 }}
+          transition={{ duration: 0.5 }}
         >
-          <span
-            className={cn(
-              "text-lg font-display font-bold tabular-nums",
-              timeLeft <= 2 ? "text-[#ff5e5b]" : "text-white",
-            )}
+          <CircleProgress
+            fraction={ringFraction}
+            size={60}
+            stroke={5}
+            color={ringColor}
+            tween={0.25}
           >
-            {timeLeft}
-          </span>
-        </CircleProgress>
-      </div>
+            <AnimatePresence mode="popLayout">
+              <motion.span
+                key={timeLeft}
+                initial={{ scale: 1.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 360, damping: 20 }}
+                className={cn(
+                  "text-lg font-display font-bold tabular-nums",
+                  timeLeft <= 2 ? "text-[#ff5e5b]" : "text-white",
+                )}
+              >
+                {timeLeft}
+              </motion.span>
+            </AnimatePresence>
+          </CircleProgress>
+        </motion.div>
+      </motion.div>
 
       {/* Whose turn */}
-      {!penalty && (
-        <p className="text-white/60 mb-4 text-sm">
-          <b style={{ color: currentPlayer.color }}>{currentPlayer.name}</b>
-          &apos;s turn — type your word and hit Enter
-        </p>
-      )}
+      <div className="h-5 mb-2 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {!penalty && (
+            <motion.p
+              key={currentPlayer.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="text-white/60 text-sm"
+            >
+              <b style={{ color: currentPlayer.color }}>{currentPlayer.name}</b>
+              &apos;s turn — type your word and hit Enter
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Input */}
-      <form onSubmit={handleSubmit} className="flex gap-2 mb-6 w-full max-w-sm">
+      <motion.form
+        variants={ITEM_VARIANTS}
+        onSubmit={handleSubmit}
+        className="flex gap-2 mb-3 w-full max-w-sm"
+      >
         <input
           ref={inputRef}
           value={input}
@@ -283,43 +331,20 @@ function Game({ players }: { players: Player[] }) {
         >
           Go
         </NeonButton>
-      </form>
-
-      {/* Penalty callout */}
-      <div className="h-16 flex items-center justify-center mb-2">
-        <AnimatePresence mode="wait">
-          {penalty && penaltyPlayer && (
-            <motion.div
-              key={`${penalty}-${penaltyPlayer.id}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="flex flex-col items-center gap-2"
-            >
-              <DrinkCallout
-                text={
-                  penalty === "timeout"
-                    ? `${penaltyPlayer.name} — too slow! Drink!`
-                    : `${penaltyPlayer.name} — repeated word! Drink!`
-                }
-                accent={ACCENT}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      </motion.form>
 
       {/* Chain history */}
       {chain.length > 1 && (
-        <div className="w-full max-w-md mt-2">
-          <p className="text-xs text-white/30 uppercase tracking-widest mb-2 text-center">
+        <motion.div variants={ITEM_VARIANTS} className="w-full max-w-md">
+          <p className="text-xs text-white/30 uppercase tracking-widest mb-1.5 text-center">
             Chain ({chain.length - 1} word{chain.length - 1 !== 1 ? "s" : ""})
           </p>
-          <div className="glass rounded-2xl p-3 flex flex-wrap gap-2 max-h-32 overflow-y-auto justify-center">
+          <div className="glass rounded-2xl p-3 flex flex-wrap gap-2 max-h-24 overflow-y-auto justify-center">
             <AnimatePresence>
               {chain.slice(1).map((w, i) => (
                 <motion.span
                   key={`${w}-${i}`}
+                  layout
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 460, damping: 22 }}
@@ -335,16 +360,49 @@ function Game({ players }: { players: Player[] }) {
               ))}
             </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Reset */}
       <button
         onClick={handleReset}
-        className="mt-8 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
+        className="mt-3 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors"
       >
         <RotateCcw size={13} /> new game
       </button>
-    </div>
+
+      {/* Penalty callout — overlaid so it reserves no vertical space */}
+      <AnimatePresence>
+        {penalty && penaltyPlayer && (
+          <motion.div
+            key={`${penalty}-${penaltyPlayer.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+          >
+            <DrinkCallout
+              text={
+                penalty === "timeout"
+                  ? `${penaltyPlayer.name} — too slow! Drink!`
+                  : `${penaltyPlayer.name} — repeated word! Drink!`
+              }
+              accent={ACCENT}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
+
+// Shared entrance variant for the staggered reveal.
+const ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 16 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring" as const, stiffness: 300, damping: 26 },
+  },
+};
