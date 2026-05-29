@@ -38,6 +38,7 @@ function Buzz({ players }: { players: Player[] }) {
   const [highScore, setHighScore] = useState(0);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [locked, setLocked] = useState(false);
+  const [penaltyPlayer, setPenaltyPlayer] = useState<Player | null>(null);
 
   const activePlayer = players[turn % players.length];
   const buzzExpected = isBuzz(count);
@@ -58,6 +59,8 @@ function Buzz({ players }: { players: Player[] }) {
   const penalise = useCallback(() => {
     sfx.buzz();
     drinkRain();
+    // Snapshot the player who messed up NOW, before the turn advances.
+    setPenaltyPlayer(players[turn % players.length]);
     // reached = count - 1 because `count` is the number they failed on,
     // so the group got through count-1 numbers cleanly.
     const reached = count - 1;
@@ -74,8 +77,9 @@ function Buzz({ players }: { players: Player[] }) {
       setTurn((t) => t + 1);
       setOutcome(null);
       setLocked(false);
+      setPenaltyPlayer(null);
     });
-  }, [after, count, highScore]);
+  }, [after, count, highScore, players, turn]);
 
   const handleSay = useCallback(() => {
     if (locked) return;
@@ -105,13 +109,10 @@ function Buzz({ players }: { players: Player[] }) {
     setTurn(0);
     setOutcome(null);
     setLocked(false);
+    setPenaltyPlayer(null);
   }
 
   const isWrong = outcome === "wrong" || outcome === "new-record";
-
-  // Capture the drinker at the moment the outcome is set (before turn advances)
-  // by reading activePlayer synchronously from the render that set isWrong.
-  const drinkerName = activePlayer.name;
 
   return (
     <div className="flex flex-col items-center">
@@ -213,7 +214,7 @@ function Buzz({ players }: { players: Player[] }) {
               exit={{ opacity: 0 }}
             >
               <DrinkCallout
-                text={`${drinkerName} drinks! Back to 1.`}
+                text={`${penaltyPlayer?.name} drinks! Back to 1.`}
                 accent={ACCENT}
               />
             </motion.div>
@@ -226,7 +227,7 @@ function Buzz({ players }: { players: Player[] }) {
               exit={{ opacity: 0 }}
             >
               <DrinkCallout
-                text={`${drinkerName} drinks! New record: ${highScore}`}
+                text={`${penaltyPlayer?.name} drinks! New record: ${highScore}`}
                 accent="#ffb627"
               />
             </motion.div>

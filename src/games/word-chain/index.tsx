@@ -46,6 +46,13 @@ function Game({ players }: { players: Player[] }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const penaltyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const turnIndexRef = useRef(turnIndex);
+
+  // Keep turnIndexRef in sync so interval/timeout callbacks always read the
+  // current turn index rather than a stale closure value.
+  useEffect(() => {
+    turnIndexRef.current = turnIndex;
+  }, [turnIndex]);
 
   const currentPlayer = players[turnIndex % players.length];
   const currentWord = chain[chain.length - 1];
@@ -122,11 +129,14 @@ function Game({ players }: { players: Player[] }) {
   }, [turnIndex, penalty]);
 
   // Watch for timeLeft hitting 0 to fire the penalty.
+  // Read the player from turnIndexRef so we capture whoever is actually on
+  // the clock right now, not the player from the render that last registered
+  // this effect (which may have advanced since the interval started).
   useEffect(() => {
     if (timeLeft === 0 && !penalty) {
-      triggerPenalty("timeout", currentPlayer);
+      triggerPenalty("timeout", players[turnIndexRef.current % players.length]);
     }
-  }, [timeLeft, penalty, currentPlayer, triggerPenalty]);
+  }, [timeLeft, penalty, players, triggerPenalty]);
 
   // Cleanup all timers on unmount.
   useEffect(() => {

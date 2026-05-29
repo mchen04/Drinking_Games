@@ -59,6 +59,14 @@ export function useThumperBeat({
       return;
     }
 
+    // Guard: clear any existing interval before starting a new one so a
+    // rapid double-Start (or React strict-mode double-invoke) cannot spawn
+    // two independent loops with out-of-sync lastBeatRef/tapProcessedRef.
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     const intervalMs = Math.round((60 / bpm) * 1000);
     // Fire immediately so first beat is instant
     fireBeat();

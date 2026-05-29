@@ -61,7 +61,10 @@ export default function PowerHour() {
       // Round complete
       const nextRound = s.round + 1;
       if (nextRound > s.totalRounds) {
-        // Power hour complete!
+        // Power hour complete! — patch ref immediately so any racing tick sees
+        // done=true before React re-renders and stateRef.current is reassigned.
+        stateRef.current.done = true;
+        clearTick();
         setSecsLeft(0);
         setRunning(false);
         setDone(true);
@@ -79,7 +82,7 @@ export default function PowerHour() {
         after(1800, () => setShowDrink(false));
       }
     }
-  }, [after]);
+  }, [after, clearTick]);
 
   useEffect(() => {
     if (running && !done) {

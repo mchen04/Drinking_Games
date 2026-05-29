@@ -27,6 +27,11 @@ function MedusaGame({ players }: { players: Player[] }) {
   const [totalDrinks, setTotalDrinks] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Synchronous guard — set to true at the top of startCountdown() before any
+  // async work so a rapid double-tap cannot pass the guard twice in the same
+  // microtask tick (intervalRef.current would still be null on the second call
+  // if checked before the setInterval assignment).
+  const countdownActiveRef = useRef(false);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -37,8 +42,12 @@ function MedusaGame({ players }: { players: Player[] }) {
   }, []);
 
   function startCountdown() {
-    // Clear any in-flight interval/timeout before starting a new one so that
-    // a double-tap cannot spawn multiple concurrent intervals.
+    // Atomically guard against double-start: if a countdown is already in
+    // progress, ignore the extra tap entirely.
+    if (countdownActiveRef.current) return;
+    countdownActiveRef.current = true;
+
+    // Clear any stale timers that might have survived (e.g. from a reset race).
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -62,6 +71,7 @@ function MedusaGame({ players }: { players: Player[] }) {
         intervalRef.current = null;
         timeoutRef.current = setTimeout(() => {
           timeoutRef.current = null;
+          countdownActiveRef.current = false;
           sfx.ding();
           setPhase("reveal");
         }, 180);
@@ -90,6 +100,7 @@ function MedusaGame({ players }: { players: Player[] }) {
   function reset() {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    countdownActiveRef.current = false;
     setPhase("idle");
     setCount(3);
     setRounds(0);
