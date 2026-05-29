@@ -153,10 +153,10 @@ function Categories({ players }: { players: Player[] }) {
   // Timer ring geometry
   // -----------------------------------------------------------------------
   const fraction = seconds / timeLimit;
-  // Use the game's coral ACCENT above 50 %, warn amber in the middle,
-  // and a vivid red-coral (not party-pink) for the final <25% urgent state.
+  // Coral ACCENT when there's plenty of time, amber warning in the middle band,
+  // back to the coral ACCENT for the urgent final stretch.
   const ringColor =
-    fraction > 0.5 ? ACCENT : fraction > 0.25 ? "#ffb627" : "#ff2d55";
+    fraction > 0.5 ? ACCENT : fraction > 0.25 ? "#ffb627" : ACCENT;
 
   // -----------------------------------------------------------------------
   // Render
