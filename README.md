@@ -168,6 +168,22 @@ That's it — it appears on the dashboard, filterable and searchable.
 
 ---
 
+## ✅ Quality & Verification
+
+This codebase was hardened with an aggressive **criticality loop** — 31 fresh-context
+audit cycles (thermo-nuclear + deslop) that found and fixed **100+ genuine issues**
+before converging: a critical inverted Beer Pong win condition, ~35 timer/RAF/interval
+cleanup and stale-closure bugs (wrong-player-penalized, overrunning timers, double-start
+races, setState-after-unmount), real rule corrections (Higher-or-Lower ties, Three Man
+doubles re-roll, Ship-Captain-Crew scoring & labels, Mexico doubles), dead-code removal,
+and canonical consolidation (`useTimeouts`, `CircleProgress`, shared palette). The full
+trajectory is recorded in [`criticality-loop.log.md`](./criticality-loop.log.md).
+
+Every change kept `pnpm typecheck` + `pnpm build` green (41/41 routes prerender). All
+**36 games were then verified end-to-end in a headless browser** (agent-browser):
+the dashboard plus a deep interaction pass over all 8 categories, and a render smoke-test
+of the rest — **zero uncaught console errors** across the suite.
+
 ## ☁️ Deployment
 
 Optimised for **[Vercel](https://vercel.com/)** (zero-config Next.js):
