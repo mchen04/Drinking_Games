@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Bus } from "lucide-react";
@@ -136,7 +137,7 @@ export default function BusDriver() {
       className="flex flex-col items-center w-full"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-sm text-center mb-3">
         Flip 8 cards without hitting a face card. J=1 · Q=2 · K=3 · A=4 drinks — then reset!

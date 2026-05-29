@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState, useCallback } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
@@ -258,7 +259,7 @@ export default function RideTheBus() {
                       : { scale: [1, 1.14, 1], rotate: 0 }
                     : { scale: 1 }
                 }
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, ease: EASE_OUT }}
               >
                 <PlayingCard
                   card={card}
@@ -295,7 +296,7 @@ export default function RideTheBus() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -18 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.28, ease: EASE_OUT }}
             className="flex flex-col items-center w-full max-w-sm"
           >
             {/* Phase label (dynamic per-question heading) */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { createDeck, type Card } from "@/lib/deck";
@@ -103,7 +104,7 @@ export default function Pyramid() {
       <motion.div
         initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.5, ease: EASE_OUT }}
         className="pyramid-fit flex flex-col items-center gap-1 sm:gap-1.5 mb-3 sm:mb-4"
       >
         {[...ROW_SIZES].reverse().map((size, reversedIdx) => {
@@ -165,7 +166,7 @@ export default function Pyramid() {
                     ? { scale: [1, 1.4, 1] }
                     : { scale: 1 }
                 }
-                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.4, ease: EASE_OUT }}
               >
                 {drinks}🍺
               </motion.span>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { PromptDeck } from "@/components/ui";
 import { cn } from "@/lib/cn";
 import { MILD, SPICY, EXTRA } from "./data";
@@ -20,7 +21,7 @@ export default function NeverHaveIEver() {
       className="flex flex-col items-center w-full"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-center text-white/50 text-sm max-w-md mb-3">
         Read the card aloud. <span className="text-white/80">If you&apos;ve done it, take a drink.</span> Last

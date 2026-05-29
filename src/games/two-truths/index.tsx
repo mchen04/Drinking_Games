@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Lightbulb, RotateCcw } from "lucide-react";
 import { CircleProgress, DrinkCallout, NeonButton, PlayerChip, RequirePlayers } from "@/components/ui";
@@ -140,7 +141,7 @@ function TwoTruths({ players }: { players: Player[] }) {
             className="text-white/55 text-xs sm:text-sm mb-3 sm:mb-4"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.18, ease: EASE_OUT }}
           >
             Tell the group <span className="text-white font-semibold">two truths</span> and{" "}
             <span style={{ color: ACCENT }} className="font-semibold">one lie</span>.
@@ -298,7 +299,7 @@ function TwoTruths({ players }: { players: Player[] }) {
               className="text-white/50 text-sm text-center"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ delay: 0.22, ease: EASE_OUT }}
             >
               {outcome === "liar"
                 ? "The group saw right through it."

@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Play, Pause, RotateCcw } from "lucide-react";
 import { NeonButton, DrinkCallout } from "@/components/ui";
@@ -147,7 +148,7 @@ export default function PowerHour() {
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
       className="flex flex-col items-center"
     >
       <p className="text-white/50 text-sm text-center mb-3 max-w-xs">
@@ -163,7 +164,7 @@ export default function PowerHour() {
             initial={{ opacity: 0, y: -8, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
             exit={{ opacity: 0, y: -8, height: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.3, ease: EASE_OUT }}
             className="flex items-center gap-2 mb-3 glass rounded-full p-1 overflow-hidden"
           >
             <span className="text-white/40 text-xs pl-3">rounds</span>

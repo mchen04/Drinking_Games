@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { RotateCcw, Trophy } from "lucide-react";
 import { NeonButton } from "@/components/ui";
@@ -170,7 +171,7 @@ function WinnerBanner({ winner, onRematch }: WinnerBannerProps) {
       <motion.h3
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ delay: 0.18, ease: EASE_OUT }}
         className="font-display text-2xl sm:text-3xl font-bold mb-1"
         style={{ color: ACCENT }}
       >
@@ -333,7 +334,7 @@ export default function BeerPong() {
                   key={teamIdx}
                   initial={{ opacity: 0, y: 24, scale: 0.94 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ delay: 0.06 + teamIdx * 0.08, ease: [0.16, 1, 0.3, 1], duration: 0.5 }}
+                  transition={{ delay: 0.06 + teamIdx * 0.08, ease: EASE_OUT, duration: 0.5 }}
                   className="glass rounded-3xl p-3 sm:p-6 w-full max-w-[240px]"
                   style={{ boxShadow: `0 0 30px -14px ${ACCENT}` }}
                 >

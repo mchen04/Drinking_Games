@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState } from "react";
 import { Users } from "lucide-react";
 import {
@@ -54,7 +55,7 @@ function Game({ players }: { players: Player[] }) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
       className="flex flex-col items-center w-full"
     >
       <Instruction />
@@ -76,7 +77,7 @@ function Instruction() {
     <motion.div
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.12, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: 0.12, duration: 0.4, ease: EASE_OUT }}
       className="flex items-center justify-center gap-2 max-w-sm w-full mb-3 text-sm text-white/55 text-center"
     >
       <Users size={15} className="shrink-0" style={{ color: ACCENT }} />
@@ -157,7 +158,7 @@ function VotePanel({ players, loser, showDrink, onVote, onClear }: VotePanelProp
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.25, ease: EASE_OUT }}
               className="flex flex-col items-center gap-1"
             >
               <motion.span

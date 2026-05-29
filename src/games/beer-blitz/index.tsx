@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw, Heart } from "lucide-react";
 import { NeonButton, DrinkCallout } from "@/components/ui";
@@ -164,7 +165,7 @@ export default function BeerBlitz() {
       <motion.p
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, ease: EASE_OUT }}
         className="text-white/50 text-sm text-center mb-3"
       >
         Stop the pour inside the{" "}
@@ -175,7 +176,7 @@ export default function BeerBlitz() {
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, delay: 0.05, ease: EASE_OUT }}
         className="flex items-center gap-4 mb-3 text-sm"
       >
         {/* Lives */}

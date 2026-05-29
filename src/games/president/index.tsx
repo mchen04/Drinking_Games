@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, RotateCcw, Shuffle } from "lucide-react";
 import { NeonButton, RequirePlayers, PlayerChip, DrinkCallout } from "@/components/ui";
@@ -283,7 +284,7 @@ function PresidentGame({ players }: { players: Player[] }) {
                       className="absolute inset-0 pointer-events-none"
                       initial={{ opacity: 0.45 }}
                       animate={{ opacity: 0 }}
-                      transition={{ delay: i * 0.1 + 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ delay: i * 0.1 + 0.05, duration: 0.7, ease: EASE_OUT }}
                       style={{ background: `radial-gradient(120% 80% at 0% 50%, ${meta.glow}33, transparent 70%)` }}
                     />
                     <motion.span

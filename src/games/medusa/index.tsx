@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, RotateCcw } from "lucide-react";
 import { NeonButton, DrinkCallout, RequirePlayers } from "@/components/ui";
@@ -279,7 +280,7 @@ function MedusaGame({ players }: { players: Player[] }) {
               <motion.div
                 initial={{ scale: 0.2, rotate: -20 }}
                 animate={{ scale: [0.2, 1.25, 1], rotate: [-20, 0, 0] }}
-                transition={{ duration: 0.5, times: [0, 0.6, 1], ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.5, times: [0, 0.6, 1], ease: EASE_OUT }}
                 className="text-5xl sm:text-6xl select-none relative"
               >
                 👀

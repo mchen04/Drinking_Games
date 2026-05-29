@@ -48,3 +48,14 @@ Pre-flight: baseline typecheck = 0 errors, build = success (green). Tree clean. 
 - **Tests:** `pnpm typecheck` + `pnpm build` GREEN after every cycle (41/41 routes prerender).
 - **Defect classes closed & verified:** unmount cleanup, reset-time cleanup, async-await-unmount guards, canonical timers/rings/buttons, React purity (no side-effects in updaters), rule correctness.
 - **Next:** agent-browser end-to-end verification of all 36 games → cleanup → docs → deploy.
+
+---
+
+# Criticality Loop — main · ANIMATION/UX PASS (2026-05-29)
+
+base: 486c009 (pre-animation) • aggressiveness: aggressive • test: pnpm typecheck • converge: 2
+Scope: the SOTA-animation + viewport-fit diff (foundation + 36 games). Pre-flight: typecheck GREEN, build GREEN (41/41), mobile-portrait fit 36/36, 0 console errors.
+
+| # | verdict | findings (genuine) | commits | notes |
+|---|---|---|---|---|
+| 1 | BLOCK | 5 | 1 | Dedup'd dead `.sheen-auto` CSS; extracted shared `EASE_OUT` motion token (killed the `[0.16,1,0.3,1]` literal in 38 files); removed centurion per-second seconds-counter pop (visual noise); MuteToggle got a canonical spring transition; dropped thumper unused `relative`. Dismissed verified false positives: count-pop `key={value}` idiom (correct), exit-transition nesting (correct framer), would-you-rather sheen (in a `group`, works), ride-the-bus stagger wrappers (canonical — NeonButton can't take `variants`), higher-or-lower RotateCcw (used), beer-pong `display:contents` (flattens to flex correctly), red-or-black stagger (targets real children), spin-bottle initial-on-rerender (initial doesn't refire), flip-cup ease-spring overshoot (intentional token). |

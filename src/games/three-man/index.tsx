@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { Crown } from "lucide-react";
@@ -134,7 +135,7 @@ function ThreeMan({ players }: { players: Player[] }) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.25, ease: EASE_OUT }}
             className="inline-block"
             style={{ color: roller.color }}
           >
@@ -192,7 +193,7 @@ function ThreeMan({ players }: { players: Player[] }) {
                   key={i}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.08 * i + 0.05, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ delay: 0.08 * i + 0.05, ease: EASE_OUT }}
                   className="text-sm sm:text-base text-white/85"
                 >
                   {m}

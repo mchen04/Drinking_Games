@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import {
@@ -197,7 +198,7 @@ function QuartersGame({ players }: { players: Player[] }) {
       className="flex flex-col items-center select-none w-full"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-sm text-center mb-3 max-w-xs">
         Lock the power when the meter hits the sweet spot — bounce it in!
@@ -251,7 +252,7 @@ function QuartersGame({ players }: { players: Player[] }) {
                 ? { scale: [1, 1.12, 1], boxShadow: `0 0 24px -4px ${ACCENT}` }
                 : { scale: 1, boxShadow: `0 0 0px ${ACCENT}` }
             }
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
           >
             {/* liquid inside cup */}
             <motion.div

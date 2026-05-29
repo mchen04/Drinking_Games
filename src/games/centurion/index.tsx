@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCcw, Play, Pause } from "lucide-react";
 import { NeonButton, DrinkCallout } from "@/components/ui";
@@ -134,7 +135,7 @@ export default function Centurion() {
       className="flex flex-col items-center w-full"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-sm text-center mb-3">
         One shot of beer every 60 seconds. Reach the target to earn legend status.
@@ -184,15 +185,9 @@ export default function Centurion() {
             >
               🥃
             </motion.span>
-            <motion.span
-              key={elapsed}
-              initial={{ scale: 1.25, opacity: 0.6 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 340, damping: 22 }}
-              className="font-display text-white font-bold text-xl leading-none mt-1"
-            >
+            <span className="font-display text-white font-bold text-xl leading-none mt-1 tabular-nums">
               {elapsed}s
-            </motion.span>
+            </span>
             <span className="text-white/40 text-xs">next shot</span>
           </div>
         </CircleProgress>
@@ -206,7 +201,7 @@ export default function Centurion() {
               initial={{ opacity: 0.7, scale: 0.9 }}
               animate={{ opacity: 0, scale: 1.6 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.8, ease: EASE_OUT }}
               style={{ boxShadow: `0 0 40px 8px ${ACCENT}` }}
             />
           )}

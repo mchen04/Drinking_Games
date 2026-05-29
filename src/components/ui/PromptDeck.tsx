@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { RotateCcw } from "lucide-react";
 import { createDealer } from "@/lib/random";
@@ -87,7 +88,7 @@ export function PromptDeck({
               className="pointer-events-none absolute inset-0"
               initial={{ x: "-130%", skewX: "-18deg", opacity: 0.5 }}
               animate={{ x: "230%", opacity: 0.5 }}
-              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+              transition={{ duration: 0.9, ease: EASE_OUT, delay: 0.1 }}
               style={{
                 background:
                   "linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.18) 48%, transparent 66%)",

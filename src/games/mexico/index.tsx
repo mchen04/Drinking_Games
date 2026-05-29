@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState, useCallback } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw } from "lucide-react";
@@ -180,7 +181,7 @@ function Mexico({ players }: { players: Player[] }) {
           <motion.div
             className="flex gap-4 sm:gap-5 scale-90 sm:scale-100"
             animate={isMexico ? { scale: [1, 1.12, 1] } : {}}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
             style={isMexico ? { filter: "drop-shadow(0 0 22px #b6ff3c)" } : undefined}
           >
             <Die value={dice[0]} rolling={rolling} size="lg" color="#b6ff3c" />

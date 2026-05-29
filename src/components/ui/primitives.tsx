@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import type { ReactNode } from "react";
 import { Beer } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -25,7 +26,7 @@ export function GameHeading({ title, subtitle, accent = "#ff2d95" }: { title: st
     <motion.div
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: EASE_OUT }}
       className="text-center mb-4 sm:mb-5"
     >
       <h2 className="font-display text-xl sm:text-2xl text-white neon-text leading-tight" style={{ color: accent }}>

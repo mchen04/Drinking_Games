@@ -179,9 +179,7 @@ body {
     );
     transform: translateX(-130%) skewX(-18deg);
   }
-  .group:hover .sheen-overlay,
-  .sheen-auto { animation: sheen 1.1s var(--ease-out-expo); }
-  .sheen-auto { animation: sheen 5s ease-in-out infinite; }
+  .group:hover .sheen-overlay { animation: sheen 1.1s var(--ease-out-expo); }
 
   /* Viewport-locked play surface: fill the shell's main area, center content,
      and only scroll *inside* this box if a game genuinely overflows — the page

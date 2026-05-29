@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { RotateCcw, Settings } from "lucide-react";
 import {
@@ -167,7 +168,7 @@ function Categories({ players }: { players: Player[] }) {
       <motion.p
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, ease: EASE_OUT }}
         className="text-white/50 text-sm text-center mb-3"
       >
         Name something in the category before the timer runs out!
@@ -229,7 +230,7 @@ function Categories({ players }: { players: Player[] }) {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}
                 className="inline-block"
               >
                 <span style={{ color: activePlayer.color }}>{activePlayer.name}</span>

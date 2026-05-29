@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { NeonButton, DrinkCallout, PlayerChip } from "@/components/ui";
@@ -180,7 +181,7 @@ export default function DrunkTrivia() {
           initial={{ opacity: 0, y: 24, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -24, scale: 0.96 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, ease: EASE_OUT }}
           className="glass-strong rounded-3xl px-5 py-4 sm:p-6 mb-3 w-full text-center"
           style={{ boxShadow: `0 0 48px -16px ${ACCENT}` }}
         >
@@ -205,7 +206,7 @@ export default function DrunkTrivia() {
           <motion.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ delay: 0.1, duration: 0.35, ease: EASE_OUT }}
             className="text-white text-base sm:text-xl font-semibold leading-snug"
           >
             {currentView.question.q}

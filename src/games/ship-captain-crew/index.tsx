@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { Die, NeonButton, RequirePlayers, PlayerChip } from "@/components/ui";
@@ -221,7 +222,7 @@ function Game({ players }: { players: Player[] }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.45, ease: EASE_OUT }}
       className="flex flex-col items-center w-full"
     >
       <p className="text-white/50 text-sm text-center mb-2">

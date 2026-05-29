@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useState, type ReactNode } from "react";
 import { ArrowLeft, Volume2, VolumeX, Users } from "lucide-react";
 import type { GameMeta } from "@/lib/types";
@@ -17,6 +18,7 @@ function MuteToggle() {
     <motion.button
       whileTap={{ scale: 0.88 }}
       whileHover={{ scale: 1.08 }}
+      transition={{ type: "spring", stiffness: 420, damping: 22 }}
       onClick={() => {
         const next = !muted;
         setMuted(next);
@@ -89,7 +91,7 @@ export function GameShell({ meta, children }: { meta: GameMeta; children: ReactN
       <motion.main
         initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.45, ease: EASE_OUT }}
         className="flex-1 min-h-0 w-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col"
       >
         <div className="game-stage py-3 sm:py-4">{children}</div>

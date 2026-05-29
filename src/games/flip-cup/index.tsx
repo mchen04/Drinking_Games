@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, Timer } from "lucide-react";
 import { NeonButton, RequirePlayers, DrinkCallout } from "@/components/ui";
@@ -138,7 +139,7 @@ function Lane({ team, progress, flippingIdx, canFlip, onFlip }: LaneProps) {
             key={currentPlayer.id}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.25, ease: EASE_OUT }}
             className="text-white/70"
           >
             Up: <b style={{ color: team.color }}>{currentPlayer.name}</b>
@@ -270,7 +271,7 @@ function Race({ players }: { players: Player[] }) {
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: EASE_OUT }}
       className="relative flex flex-col items-center w-full max-w-2xl mx-auto"
     >
       <p className="text-white/50 text-sm text-center mb-2">

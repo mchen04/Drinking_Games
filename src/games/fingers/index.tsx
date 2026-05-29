@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useState } from "react";
 import { useTimeouts } from "@/lib/timers";
 import { RotateCcw, Eye, EyeOff } from "lucide-react";
@@ -187,7 +188,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
       <motion.p
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.4, ease: EASE_OUT }}
         className="text-white/50 text-sm text-center mb-3"
       >
         Guess how many keep their finger in. Last one standing drinks.
@@ -222,7 +223,7 @@ function Fingers({ allPlayers }: { allPlayers: Player[] }) {
             initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.96 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
             className="glass-strong rounded-3xl p-4 sm:p-6 w-full max-w-md text-center"
             style={{ boxShadow: `0 0 40px -14px ${ACCENT}` }}
           >

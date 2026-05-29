@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import { RotateCcw, Send } from "lucide-react";
 import {
@@ -220,7 +221,7 @@ function Game({ players }: { players: Player[] }) {
       className="flex flex-col items-center w-full max-w-lg mx-auto"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-sm text-center mb-3">
         Name a celebrity. Next must start with the last letter of the full name.

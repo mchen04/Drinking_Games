@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { RequirePlayers, DrinkCallout, NeonButton } from "@/components/ui";
@@ -130,7 +131,7 @@ function Game({ players }: { players: Player[] }) {
       className="flex flex-col items-center select-none"
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-sm text-center mb-2">
         Spin 🍾 — it lands on someone. They get a dare or take a drink.
@@ -199,7 +200,7 @@ function Game({ players }: { players: Player[] }) {
                 }
                 transition={
                   isChosen
-                    ? { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
+                    ? { duration: 0.5, ease: EASE_OUT }
                     : { type: "spring", stiffness: 280, damping: 20 }
                 }
               >
@@ -346,7 +347,7 @@ function Game({ players }: { players: Player[] }) {
               <motion.p
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.12, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 0.12, duration: 0.4, ease: EASE_OUT }}
                 className="glass-strong rounded-2xl px-5 py-2.5 text-center text-white/85 text-sm max-w-xs"
                 style={{ boxShadow: `0 0 28px -10px ${ACCENT}` }}
               >

@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { useTimeouts } from "@/lib/timers";
@@ -142,7 +143,7 @@ function JengaGame({ players }: { players: Player[] }) {
       className="flex flex-col items-center w-full"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.45, ease: EASE_OUT }}
     >
       <p className="text-white/50 text-xs sm:text-sm text-center mb-2 sm:mb-3">
         Pull a block — do the dare or take a drink. Don&apos;t let it fall!
@@ -209,7 +210,7 @@ function JengaGame({ players }: { players: Player[] }) {
                     }}
                     exit={
                       beingPulled
-                        ? { x: rowIndex % 2 === 0 ? 140 : -140, opacity: 0, rotate: rowIndex % 2 === 0 ? 8 : -8, transition: { duration: 0.38, ease: [0.16, 1, 0.3, 1] } }
+                        ? { x: rowIndex % 2 === 0 ? 140 : -140, opacity: 0, rotate: rowIndex % 2 === 0 ? 8 : -8, transition: { duration: 0.38, ease: EASE_OUT } }
                         : { opacity: 0, transition: { duration: 0.15 } }
                     }
                     className="rounded-sm w-[120px] h-[14px] sm:w-[160px] sm:h-[18px] [@media(max-height:520px)]:h-[11px] [@media(max-height:520px)]:w-[150px]"

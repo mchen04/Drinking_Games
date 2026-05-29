@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useMemo, useState } from "react";
 import { Search, Heart } from "lucide-react";
 import { GAMES } from "@/games/registry";
@@ -44,7 +45,7 @@ export function Dashboard() {
         <motion.h1
           initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.7, ease: EASE_OUT }}
           className="font-display font-extrabold leading-[0.88] text-[max(2.4rem,min(13vw,17vh,7rem))]"
         >
           <span

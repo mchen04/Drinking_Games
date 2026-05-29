@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useAnimationControls } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useEffect, useRef, useState } from "react";
 import { randInt } from "@/lib/random";
 import { sfx } from "@/lib/sound";
@@ -78,7 +79,7 @@ export function Wheel({ segments, onResult, onSpinStart, size = 320, className }
 
     await controls.start({
       rotate: next,
-      transition: { duration: SPIN_DURATION, ease: [0.16, 1, 0.3, 1] },
+      transition: { duration: SPIN_DURATION, ease: EASE_OUT },
     });
 
     clearTicks();

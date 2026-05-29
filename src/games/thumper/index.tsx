@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { EASE_OUT } from "@/lib/motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Music2, RotateCcw, Info } from "lucide-react";
 import { NeonButton, RequirePlayers, DrinkCallout, PlayerChip } from "@/components/ui";
@@ -20,8 +21,6 @@ const BPM_MAX = 160;
 const TAPS_PER_LEVEL = 5;
 /** Tolerance window: fraction of the beat interval that counts as "on beat". */
 const TOLERANCE_FRACTION = 0.28;
-
-const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 
 export default function Thumper() {
   return (
@@ -253,8 +252,8 @@ function ThumperGame({ players }: { players: Player[] }) {
         </div>
       </div>
 
-      {/* Tap result feedback — overlaid so it doesn't reserve big fixed height */}
-      <div className="relative h-9 flex items-center justify-center mb-2">
+      {/* Tap result feedback — fixed small height so it doesn't reserve big space */}
+      <div className="h-9 flex items-center justify-center mb-2">
         <AnimatePresence mode="wait">
           {tapResult?.kind === "miss" && (
             <DrinkCallout key="miss" text={tapResult.phrase} accent={ACCENT} />
