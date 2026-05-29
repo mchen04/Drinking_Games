@@ -39,6 +39,7 @@ export function PlayingCard({
       <motion.div
         onClick={onClick}
         animate={{ rotateY: showBack ? 180 : 0 }}
+        whileHover={onClick ? { y: -6, scale: 1.03 } : undefined}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
         className={cn("relative w-full h-full", onClick && "cursor-pointer")}
         style={{ transformStyle: "preserve-3d" }}
@@ -46,7 +47,7 @@ export function PlayingCard({
         {/* Face */}
         <div
           className={cn(
-            "absolute inset-0 flex flex-col justify-between p-2 bg-white",
+            "absolute inset-0 flex flex-col justify-between p-2 bg-white overflow-hidden",
             ROUNDED[size],
           )}
           style={{
@@ -54,6 +55,14 @@ export function PlayingCard({
             boxShadow: glow ? `0 0 28px -6px ${glow}` : "0 8px 24px -10px rgba(0,0,0,0.7)",
           }}
         >
+          {/* glossy glare */}
+          <span
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.55) 0%, transparent 38%, transparent 70%, rgba(120,80,200,0.10) 100%)",
+            }}
+          />
           {card && (
             <>
               <span className={cn("font-bold leading-none", red ? "text-rose-600" : "text-zinc-900")}>

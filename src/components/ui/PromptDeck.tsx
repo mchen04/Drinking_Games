@@ -50,32 +50,58 @@ export function PromptDeck({
 
   return (
     <div className={cn("w-full max-w-xl mx-auto flex flex-col items-center", className)}>
-      <div className="relative w-full h-72 sm:h-80 mb-8" style={{ perspective: 1200 }}>
+      <div
+        className="relative w-full mb-6 h-[clamp(11rem,42vh,20rem)]"
+        style={{ perspective: 1200 }}
+      >
+        {/* stacked ghost cards for depth */}
+        <div
+          aria-hidden
+          className="absolute inset-x-4 top-3 bottom-0 glass rounded-[2rem] opacity-40"
+          style={{ transform: "translateY(14px) scale(0.93)" }}
+        />
+        <div
+          aria-hidden
+          className="absolute inset-x-2 top-1.5 bottom-0 glass rounded-[2rem] opacity-60"
+          style={{ transform: "translateY(7px) scale(0.965)" }}
+        />
         <AnimatePresence mode="popLayout">
           <motion.div
             key={key.current}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.6}
+            dragElastic={0.7}
+            whileDrag={{ scale: 1.02, cursor: "grabbing" }}
             onDragEnd={(_, info) => {
-              if (Math.abs(info.offset.x) > 120) deal();
+              if (Math.abs(info.offset.x) > 110 || Math.abs(info.velocity.x) > 500) deal();
             }}
-            initial={{ opacity: 0, scale: 0.85, rotateY: 40, y: 30 }}
+            initial={{ opacity: 0, scale: 0.8, rotateY: 45, y: 36 }}
             animate={{ opacity: 1, scale: 1, rotateY: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.85, x: -260, rotate: -12 }}
-            transition={{ type: "spring", stiffness: 260, damping: 26 }}
-            className="absolute inset-0 glass-strong rounded-[2rem] p-8 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing"
+            exit={{ opacity: 0, scale: 0.82, x: -300, rotate: -14 }}
+            transition={{ type: "spring", stiffness: 280, damping: 26 }}
+            className="absolute inset-0 glass-strong rounded-[2rem] p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-grab active:cursor-grabbing overflow-hidden"
             style={{ boxShadow: `0 0 60px -18px ${accent}, inset 0 0 0 1px rgba(255,255,255,0.08)` }}
           >
+            <motion.span
+              aria-hidden
+              className="pointer-events-none absolute inset-0"
+              initial={{ x: "-130%", skewX: "-18deg", opacity: 0.5 }}
+              animate={{ x: "230%", opacity: 0.5 }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+              style={{
+                background:
+                  "linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.18) 48%, transparent 66%)",
+              }}
+            />
             {prefix && (
               <span
-                className="font-display uppercase tracking-[0.25em] text-xs mb-5"
+                className="font-display uppercase tracking-[0.25em] text-xs mb-4 sm:mb-5"
                 style={{ color: accent }}
               >
                 {prefix}
               </span>
             )}
-            <p className="text-2xl sm:text-3xl font-semibold leading-snug text-balance text-white">
+            <p className="text-xl sm:text-3xl font-semibold leading-snug text-balance text-white">
               {current}
             </p>
           </motion.div>
@@ -86,7 +112,7 @@ export function PromptDeck({
         {nextLabel}
       </NeonButton>
 
-      <div className="mt-4 flex items-center gap-1.5 text-xs text-white/30">
+      <div className="mt-3 flex items-center gap-1.5 text-xs text-white/30">
         <RotateCcw size={12} />
         <span>{count} dealt · swipe or tap</span>
       </div>

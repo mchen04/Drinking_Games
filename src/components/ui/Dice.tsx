@@ -29,16 +29,29 @@ export function Die({ value, rolling = false, size = "md", color = "#ff2d95", cl
     <motion.div
       animate={
         rolling
-          ? { rotate: [0, -90, 120, -200, 360], scale: [1, 1.1, 0.95, 1.05, 1] }
-          : { rotate: 0, scale: 1 }
+          ? {
+              rotateX: [0, 220, 410, 540],
+              rotateY: [0, -180, -320, -450],
+              rotate: [0, 25, -15, 0],
+              scale: [1, 1.18, 0.92, 1.06, 1],
+              y: [0, -18, 0, -6, 0],
+            }
+          : { rotateX: 0, rotateY: 0, rotate: 0, scale: 1, y: 0 }
       }
-      transition={rolling ? { duration: 0.6, ease: "easeInOut" } : { type: "spring", stiffness: 300, damping: 18 }}
+      transition={
+        rolling
+          ? { duration: 0.7, ease: [0.3, 0.8, 0.4, 1] }
+          : { type: "spring", stiffness: 320, damping: 14 }
+      }
       className={cn(
         "relative grid grid-cols-3 grid-rows-3 gap-0.5 p-2 rounded-2xl bg-white",
         SIZES[size],
         className,
       )}
-      style={{ boxShadow: `0 0 24px -6px ${color}, inset 0 -4px 10px -4px rgba(0,0,0,0.25)` }}
+      style={{
+        boxShadow: `0 0 24px -6px ${color}, inset 0 -4px 10px -4px rgba(0,0,0,0.25)`,
+        transformStyle: "preserve-3d",
+      }}
     >
       {Array.from({ length: 9 }).map((_, i) => {
         const row = Math.floor(i / 3);

@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 import { ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { createDeck, type Card } from "@/lib/deck";
-import { PlayingCard, NeonButton, GameHeading, DrinkCallout } from "@/components/ui";
+import { PlayingCard, NeonButton, DrinkCallout } from "@/components/ui";
 import { sfx } from "@/lib/sound";
 import { pop } from "@/lib/confetti";
 import { useTimeouts } from "@/lib/timers";
@@ -76,26 +76,31 @@ export default function HigherOrLower() {
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <GameHeading
-        title="Higher or Lower"
-        subtitle="Wrong guess = take a drink. Aces are high."
-        accent="#18e7ff"
-      />
+    <div className="flex flex-col items-center w-full">
+      <p className="text-white/50 text-sm text-center mb-3">Wrong guess = take a drink. Aces are high.</p>
 
-      <div className="flex items-center justify-center gap-6 mb-8 min-h-[14rem]">
-        <div className="flex flex-col items-center gap-2">
+      <div className="flex items-center justify-center gap-4 sm:gap-6 mb-3">
+        <div className="flex flex-col items-center gap-1.5">
           <PlayingCard card={board.current} size="lg" glow="#18e7ff" />
           <span className="text-xs text-white/40">current</span>
         </div>
-        <span className="text-2xl text-white/30">vs</span>
-        <div className="flex flex-col items-center gap-2">
-          <PlayingCard card={next} faceDown={!next} size="lg" glow={result === "win" ? "#b6ff3c" : result === "lose" ? "#ff5e5b" : "#9d4edd"} />
+        <span className="text-2xl text-white/30 font-display">vs</span>
+        <motion.div
+          className="flex flex-col items-center gap-1.5"
+          animate={result === "lose" ? { x: [0, -10, 10, -6, 6, 0] } : result === "win" ? { y: [0, -10, 0] } : {}}
+          transition={{ duration: 0.5 }}
+        >
+          <PlayingCard
+            card={next}
+            faceDown={!next}
+            size="lg"
+            glow={result === "win" ? "#b6ff3c" : result === "lose" ? "#ff5e5b" : "#9d4edd"}
+          />
           <span className="text-xs text-white/40">next</span>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="h-12 mb-4">
+      <div className="h-9 mb-2 flex items-center">
         <AnimatePresence>
           {result === "lose" && <DrinkCallout text="Wrong — drink!" accent="#ff5e5b" />}
           {result === "win" && (
@@ -120,14 +125,18 @@ export default function HigherOrLower() {
         </NeonButton>
       </div>
 
-      <div className="mt-8 flex items-center gap-6 text-sm text-white/50">
-        <span>streak <b className="text-white">{streak}</b></span>
+      <div className="mt-4 flex items-center gap-6 text-sm text-white/50">
+        <span>
+          streak{" "}
+          <motion.b key={streak} initial={{ scale: 1.5 }} animate={{ scale: 1 }} className="text-white inline-block">
+            {streak}
+          </motion.b>
+        </span>
         <span>best <b className="text-neon-amber">{best}</b></span>
+        <button onClick={reset} className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors">
+          <RotateCcw size={13} /> new deck
+        </button>
       </div>
-
-      <button onClick={reset} className="mt-6 flex items-center gap-1.5 text-xs text-white/30 hover:text-white/70 transition-colors">
-        <RotateCcw size={13} /> new deck
-      </button>
     </div>
   );
 }

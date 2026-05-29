@@ -48,6 +48,8 @@ export function GameCard({ game }: { game: GameMeta }) {
           className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           style={{ boxShadow: `inset 0 0 0 1px ${cat.hex}66, 0 0 40px -12px ${cat.hex}` }}
         />
+        {/* glossy light sweep on hover */}
+        <span className="sheen-overlay rounded-3xl" />
 
         <div className="relative" style={{ transform: "translateZ(40px)" }}>
           <div className="flex items-start justify-between mb-3">

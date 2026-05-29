@@ -31,27 +31,32 @@ export function Dashboard() {
       <NeonBackground />
 
       {/* ---------------------------------------------------------- hero */}
-      <header className="relative px-4 pt-16 pb-10 sm:pt-24 text-center">
+      <header className="relative px-4 pt-10 pb-6 sm:pt-16 sm:pb-8 text-center">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-6 text-xs uppercase tracking-[0.25em] text-white/60"
+          className="inline-flex items-center gap-2 glass rounded-full px-4 py-1.5 mb-5 text-xs uppercase tracking-[0.25em] text-white/60"
         >
           🍸 {GAMES.length} games · {CATEGORIES.length} flavors
         </motion.div>
 
         <motion.h1
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display text-6xl sm:text-8xl font-extrabold leading-[0.9]"
+          className="font-display font-extrabold leading-[0.88] text-[clamp(2.5rem,13vw,7rem)]"
         >
-          <span className="bg-gradient-to-br from-neon-pink via-neon-violet to-neon-cyan bg-clip-text text-transparent neon-text">
+          <span
+            className="block bg-gradient-to-br from-neon-pink via-neon-violet to-neon-cyan bg-clip-text text-transparent neon-text animate-gradient"
+            style={{ backgroundSize: "220% 220%" }}
+          >
             POUR
           </span>
-          <br />
-          <span className="bg-gradient-to-br from-neon-cyan via-neon-lime to-neon-amber bg-clip-text text-transparent neon-text">
+          <span
+            className="block bg-gradient-to-br from-neon-cyan via-neon-lime to-neon-amber bg-clip-text text-transparent neon-text animate-gradient"
+            style={{ backgroundSize: "220% 220%" }}
+          >
             DECISIONS
           </span>
         </motion.h1>
@@ -60,7 +65,7 @@ export function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.6 }}
-          className="mt-5 text-lg sm:text-xl text-white/60 max-w-xl mx-auto text-balance"
+          className="mt-4 text-base sm:text-xl text-white/60 max-w-xl mx-auto text-balance px-2"
         >
           Every drinking game worth playing — cards, dice, dares, spinners & trivia.
           Pick your poison. 🥂
@@ -97,7 +102,7 @@ export function Dashboard() {
       </div>
 
       {/* --------------------------------------------------------- grid */}
-      <main className="px-4 py-10 max-w-6xl mx-auto" style={{ perspective: 1400 }}>
+      <main className="px-4 py-6 sm:py-8 max-w-6xl mx-auto" style={{ perspective: 1400 }}>
         <motion.div
           layout
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"

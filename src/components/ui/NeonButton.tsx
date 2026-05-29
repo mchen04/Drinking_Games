@@ -69,7 +69,7 @@ export function NeonButton({
           : undefined
       }
       className={cn(
-        "relative font-semibold tracking-wide border select-none",
+        "group relative overflow-hidden font-semibold tracking-wide border select-none",
         "transition-colors disabled:opacity-40 disabled:cursor-not-allowed",
         VARIANTS[variant],
         SIZES[size],
@@ -77,7 +77,8 @@ export function NeonButton({
         className,
       )}
     >
-      {children}
+      {!disabled && <span className="sheen-overlay rounded-[inherit]" />}
+      <span className="relative z-[1] inline-flex items-center justify-center gap-2">{children}</span>
     </motion.button>
   );
 }

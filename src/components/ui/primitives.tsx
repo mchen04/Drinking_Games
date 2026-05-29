@@ -18,29 +18,48 @@ export function Chip({ children, color, className }: { children: ReactNode; colo
   );
 }
 
-/** Centered section heading with an accent. */
+/** Centered section heading with an accent. Compact by design so it never
+ *  fights the shell header for vertical space. */
 export function GameHeading({ title, subtitle, accent = "#ff2d95" }: { title: string; subtitle?: string; accent?: string }) {
   return (
-    <div className="text-center mb-6">
-      <h2 className="font-display text-2xl sm:text-3xl text-white neon-text" style={{ color: accent }}>
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="text-center mb-4 sm:mb-5"
+    >
+      <h2 className="font-display text-xl sm:text-2xl text-white neon-text leading-tight" style={{ color: accent }}>
         {title}
       </h2>
       {subtitle && <p className="text-white/50 mt-1 text-sm">{subtitle}</p>}
-    </div>
+    </motion.div>
   );
 }
 
-/** Animated "drink!" callout for big moments. */
+/** Animated "drink!" callout for big moments — springs in, then breathes a glow. */
 export function DrinkCallout({ text = "Drink!", accent = "#ffb627" }: { text?: string; accent?: string }) {
   return (
     <motion.div
-      initial={{ scale: 0.6, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 320, damping: 16 }}
-      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-display uppercase tracking-wider"
-      style={{ color: "#1a0a00", background: accent, boxShadow: `0 0 36px -6px ${accent}` }}
+      initial={{ scale: 0.5, opacity: 0, rotate: -4 }}
+      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+      transition={{ type: "spring", stiffness: 340, damping: 14 }}
+      className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl font-display uppercase tracking-wider text-lg"
+      style={{ color: "#1a0a00", background: accent }}
     >
-      <Beer size={20} /> {text}
+      <motion.span
+        animate={{ rotate: [0, -12, 12, -8, 0] }}
+        transition={{ duration: 0.7, repeat: Infinity, repeatDelay: 1.4 }}
+        className="inline-flex"
+      >
+        <Beer size={22} />
+      </motion.span>
+      <motion.span
+        className="absolute inset-0 rounded-2xl -z-10"
+        animate={{ boxShadow: [`0 0 24px -6px ${accent}`, `0 0 52px 2px ${accent}`, `0 0 24px -6px ${accent}`] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        style={{ background: accent }}
+      />
+      {text}
     </motion.div>
   );
 }
