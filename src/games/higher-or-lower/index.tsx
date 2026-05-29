@@ -36,6 +36,7 @@ export default function HigherOrLower() {
     setRevealing(true);
     sfx.flip();
     const pool = board.deck.length > 1 ? board.deck : createDeck();
+    // pool[0] is board.current (already shown); pool[1] is the NEXT card to compare.
     const drawn = pool[1];
     setNext(drawn);
 
