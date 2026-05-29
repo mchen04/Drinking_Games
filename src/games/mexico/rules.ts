@@ -3,7 +3,7 @@
  *
  * Ranking (higher score = better roll):
  *   Mexico (2+1)  → 1000          — always wins, never loses
- *   Doubles dd    → 900 + d        (66=966, 55=955, … 11=911)
+ *   Doubles dd    → 900 + dd       (66=966, 55=955, … 11=911)
  *   Regular       → hi*10 + lo     (e.g. [6,4]→64, [3,2]→32)
  *
  * Round loser: player(s) with the LOWEST score drink.
@@ -17,8 +17,8 @@ export function scoreRoll(a: number, b: number): number {
   const lo = Math.min(a, b);
   // Mexico: one die is 2, the other is 1
   if (hi === 2 && lo === 1) return 1000;
-  // Doubles
-  if (hi === lo) return 900 + hi;
+  // Doubles: 900 + the two-digit value (11→911 … 66→966), ranked above all regulars
+  if (hi === lo) return 900 + hi * 11;
   // Regular: hi is tens digit, lo is ones
   return hi * 10 + lo;
 }
