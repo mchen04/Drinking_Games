@@ -59,3 +59,15 @@ Scope: the SOTA-animation + viewport-fit diff (foundation + 36 games). Pre-fligh
 | # | verdict | findings (genuine) | commits | notes |
 |---|---|---|---|---|
 | 1 | BLOCK | 5 | 1 | Dedup'd dead `.sheen-auto` CSS; extracted shared `EASE_OUT` motion token (killed the `[0.16,1,0.3,1]` literal in 38 files); removed centurion per-second seconds-counter pop (visual noise); MuteToggle got a canonical spring transition; dropped thumper unused `relative`. Dismissed verified false positives: count-pop `key={value}` idiom (correct), exit-transition nesting (correct framer), would-you-rather sheen (in a `group`, works), ride-the-bus stagger wrappers (canonical — NeonButton can't take `variants`), higher-or-lower RotateCcw (used), beer-pong `display:contents` (flattens to flex correctly), red-or-black stagger (targets real children), spin-bottle initial-on-rerender (initial doesn't refire), flip-cup ease-spring overshoot (intentional token). |
+| 2 | BLOCK | 2 | 1 | Standardized bare `ease:"easeOut"` → canonical `EASE_OUT` token (12 files, fixed a stray `EASE_OUT as const`); removed dead `--ease-spring` CSS token. Verified FALSE POSITIVES dismissed (applied no false fixes): ship-captain-crew `key={r.cargo}` (nested in a row keyed by player.id — no collision, intended count-pop); paranoia GameHeading import (already removed). |
+| 3 | clean* | 0 genuine | 0 | 3/4 slices APPROVE; the dice/chance/timer slice re-raised only VERIFIED FALSE POSITIVES (ship-captain `key={r.cargo}` again; russian-roulette `entranceVariants` "missing initial/animate" — actually correct Framer variant PROPAGATION: parent tray sets `initial=hidden animate=show`, children inherit). No genuine defects → applied nothing. consecutive clean = 1. |
+| 4 | APPROVE | 0 | 0 | All 4 slices APPROVE, zero genuine defects (the two known FPs explicitly pre-empted and confirmed correct). consecutive clean = 2 → CONVERGED. |
+
+## Animation-pass exit summary
+
+**Exit reason: converged (on the merits).** Target = 2 consecutive cycles with no genuine defects; reached at cycles 3–4. Genuine-finding trajectory 5 → 2 → 0 → 0 — the classic diminishing-to-false-positives tail.
+
+- **Cycles:** 4 audits (16 fresh-context Explore slices total), 2 fix passes.
+- **Genuine fixes:** dead `.sheen-auto` dedup; **shared `EASE_OUT` motion token** killing the `[0.16,1,0.3,1]` literal across 38 files + standardizing `ease:"easeOut"` strings (50 files now reference one canonical ease); centurion per-second seconds-pop removed (visual noise); MuteToggle canonical spring; thumper dead `relative`; dead `--ease-spring` token removed.
+- **Logic:** UNCHANGED — only presentation/animation/styling touched; all 31-cycle correctness invariants intact (verified: beer-pong other-team-wins, three-man min=3+doubles-reroll, higher/lower strict tie=loss, mexico doubles band, ship-captain scoring).
+- **Tests:** `pnpm typecheck` GREEN after every cycle.
